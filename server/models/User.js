@@ -2,11 +2,21 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: {
+    type: String,
+    required: true
+  },
 
-  email: { type: String, required: true, unique: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
 
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: true
+  },
 
   role: {
     type: String,
@@ -14,14 +24,12 @@ const userSchema = new mongoose.Schema({
     required: true
   },
 
-  farmName: {
+  contact: {
     type: String,
-    required: function () {
-      return this.role === 'farmer';
-    }
+    required: true // ✅ Required for all users (farmer and buyer)
   },
 
-  contact: {
+  farmName: {
     type: String,
     required: function () {
       return this.role === 'farmer';
@@ -46,7 +54,7 @@ const userSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// Geospatial index for farmer location
+// Geospatial index
 userSchema.index({ location: '2dsphere' });
 
 // Hash password before saving
