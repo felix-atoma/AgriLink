@@ -1,0 +1,37 @@
+{
+  "translation": {
+    "app_name": "AgriLink",
+    "common": {
+      "dashboard": "Tablero",
+      "login": "Iniciar sesión",
+      "logout": "Cerrar sesión",
+      "register": "Registrarse",
+      "allRightsReserved": "Todos los derechos reservados",
+      "loading": "Cargando..."
+    },
+    "auth": {
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirm_password": "Confirmar contraseña",
+      "name": "Nombre completo",
+      "login": "Iniciar sesión",
+      "register": "Crear cuenta",
+      "logout": "Cerrar sesión",
+      "role": "Selecciona tu rol",
+      "role_farmer": "Agricultor",
+      "role_buyer": "Comprador",
+      "requiredField": "Este campo es obligatorio",
+      "passwords_mismatch": "Las contraseñas no coinciden"
+    },
+    "products": {
+      "myProducts": "Mis productos",
+      "addProduct": "Agregar producto",
+      "discover": "Descubrir productos",
+      "add_to_cart": "Añadir al carrito"
+    },
+    "orders": {
+      "myOrders": "Mis pedidos",
+      "received": "Pedidos recibidos"
+    }
+  }
+}

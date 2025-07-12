@@ -1,10 +1,9 @@
-// controllers/authController.js
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { successResponse, errorResponse } from '../utils/apiResponse.js';
 import i18n from '../config/i18n.js';
+import { sendWelcomeEmail } from '../utils/sendEmail.js'; // ✅ Import the mailer
 
-// Ensure JWT env values are set
 const generateToken = (user) => {
   if (!process.env.JWT_SECRET) {
     throw new Error('Missing JWT_SECRET in environment variables');
@@ -17,6 +16,7 @@ const generateToken = (user) => {
   );
 };
 
+// ✅ Register Controller with Email Notification
 export const register = async (req, res) => {
   try {
     const {
@@ -32,29 +32,20 @@ export const register = async (req, res) => {
 
     console.log("📥 Incoming register request:", req.body);
 
-    // Validate required fields
+    // Basic field validation
     if (!name || !email || !password || !role || !contact) {
       console.log("❌ Missing required fields");
       return errorResponse(res, 'Missing required fields', 400);
     }
 
-    // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("⚠️ Email already exists");
       return errorResponse(res, i18n.__('auth.emailExists'), 400);
     }
 
-    // Build user data
-    const userData = {
-      name,
-      email,
-      password,
-      role,
-      contact
-    };
+    const userData = { name, email, password, role, contact };
 
-    // Farmer-specific fields
     if (role === 'farmer') {
       if (!farmName || !lat || !lng) {
         return errorResponse(res, 'Farm name and location are required for farmers', 400);
@@ -72,14 +63,26 @@ export const register = async (req, res) => {
     const user = await User.create(userData);
     const token = generateToken(user);
 
-    return successResponse(res, { user, token }, 201);
+    // ✅ Send welcome email
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+      console.log('📧 Welcome email sent to', user.email);
+    } catch (emailError) {
+      console.error('⚠️ Email send failed:', emailError.message);
+    }
+
+    return successResponse(res, {
+      message: 'User registered successfully',
+      user,
+      token
+    }, 201);
   } catch (error) {
     console.error("❌ REGISTER ERROR:", error);
     return errorResponse(res, error.message || 'Unknown error');
   }
 };
 
-
+// ✅ Login Controller
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -98,10 +101,11 @@ export const login = async (req, res) => {
     return successResponse(res, { user, token });
   } catch (error) {
     console.error('❌ LOGIN ERROR:', error);
-    return errorResponse(res, error?.message || 'Login failed', 500);
+    return errorResponse(res, error.message || 'Login failed', 500);
   }
 };
 
+// ✅ Get Current Logged-in User
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -111,6 +115,6 @@ export const getMe = async (req, res) => {
     return successResponse(res, user);
   } catch (error) {
     console.error('❌ GETME ERROR:', error);
-    return errorResponse(res, error?.message || 'Failed to fetch user', 500);
+    return errorResponse(res, error.message || 'Failed to fetch user', 500);
   }
 };

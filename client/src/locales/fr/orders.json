@@ -1,0 +1,18 @@
+{
+  "received": "Commandes reçues",
+  "myOrders": "Mes commandes",
+  "orderDetails": "Détails de la commande",
+  "status": "Statut",
+  "statuses": {
+    "pending": "En attente",
+    "processing": "En traitement",
+    "shipped": "Expédiée",
+    "delivered": "Livrée",
+    "cancelled": "Annulée"
+  },
+  "total": "Total",
+  "date": "Date",
+  "items": "Articles",
+  "statusUpdated": "Statut de la commande mis à jour",
+  "noOrders": "Aucune commande trouvée"
+}

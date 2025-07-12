@@ -1,0 +1,26 @@
+{
+  "discover": "Découvrir des produits frais",
+  "myProducts": "Mes produits",
+  "addProduct": "Ajouter un produit",
+  "editProduct": "Modifier le produit",
+  "productDetails": "Détails du produit",
+  "name": "Nom",
+  "price": "Prix",
+  "minPrice": "Doit être supérieur à 0",
+  "quantity": "Quantité",
+  "description": "Description",
+  "category": "Catégorie",
+  "images": "Images",
+  "addSuccess": "Produit ajouté avec succès",
+  "updateSuccess": "Produit mis à jour avec succès",
+  "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce produit ?",
+  "noProducts": "Aucun produit trouvé",
+  "categories": {
+    "vegetables": "Légumes",
+    "fruits": "Fruits",
+    "grains": "Céréales",
+    "dairy": "Produits laitiers",
+    "meat": "Viande",
+    "other": "Autres"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "discover": "Discover Fresh Produce",
+  "myProducts": "My Products",
+  "addProduct": "Add Product",
+  "editProduct": "Edit Product",
+  "productDetails": "Product Details",
+  "name": "Name",
+  "price": "Price",
+  "minPrice": "Must be greater than 0",
+  "quantity": "Quantity",
+  "description": "Description",
+  "category": "Category",
+  "images": "Images",
+  "addSuccess": "Product added successfully",
+  "updateSuccess": "Product updated successfully",
+  "deleteConfirm": "Are you sure you want to delete this product?",
+  "noProducts": "No products found",
+  "categories": {
+    "vegetables": "Vegetables",
+    "fruits": "Fruits",
+    "grains": "Grains",
+    "dairy": "Dairy",
+    "meat": "Meat",
+    "other": "Other"
+  }
+}

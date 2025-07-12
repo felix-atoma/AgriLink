@@ -1,0 +1,18 @@
+{
+  "received": "Orders Received",
+  "myOrders": "My Orders",
+  "orderDetails": "Order Details",
+  "status": "Status",
+  "statuses": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "total": "Total",
+  "date": "Date",
+  "items": "Items",
+  "statusUpdated": "Order status updated",
+  "noOrders": "No orders found"
+}
