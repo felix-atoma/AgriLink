@@ -1,30 +1,33 @@
-import { NavLink } from 'react-router-dom'
-import { useAuth } from '@/context/AuthContext'
-import { useTranslation } from 'react-i18next'
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import {
   HomeIcon,
   ShoppingBagIcon,
   PlusCircleIcon,
   ChartBarIcon,
   ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline'
+} from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
-  const { user, logout } = useAuth()
-  const { t } = useTranslation()
+  const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
-  if (!user) return null // Safety guard
+  if (!user) return null;
 
-  const navItems = user.role === 'farmer' ? [
-    { name: t('common.dashboard'), icon: HomeIcon, to: '/dashboard/farmer' },
-    { name: t('products.myProducts'), icon: ShoppingBagIcon, to: '/dashboard/farmer/products' },
-    { name: t('products.addProduct'), icon: PlusCircleIcon, to: '/dashboard/farmer/products/add' },
-    { name: t('orders.received'), icon: ChartBarIcon, to: '/dashboard/farmer/orders' }
-  ] : [
-    { name: t('common.dashboard'), icon: HomeIcon, to: '/dashboard/buyer' },
-    { name: t('products.discover'), icon: ShoppingBagIcon, to: '/dashboard/buyer/discover' },
-    { name: t('orders.myOrders'), icon: ChartBarIcon, to: '/dashboard/buyer/orders' }
-  ]
+  const navItems = user.role === 'farmer'
+    ? [
+        { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/farmer' },
+        { key: 'products.myProducts', icon: ShoppingBagIcon, to: '/dashboard/farmer/my-products' },
+        { key: 'products.addProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/add-product' },
+        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders' }
+      ]
+    : [
+        { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/buyer' },
+        { key: 'products.discover', icon: ShoppingBagIcon, to: '/dashboard/buyer/discover' },
+        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/my-orders' }
+      ];
 
   return (
     <aside className="w-64 bg-white shadow-md h-screen fixed top-0 left-0 z-20 flex flex-col">
@@ -53,7 +56,7 @@ const Sidebar = () => {
             }
           >
             <item.icon className="h-5 w-5 mr-3" />
-            {item.name}
+            {t(item.key)}
           </NavLink>
         ))}
       </nav>
@@ -69,7 +72,7 @@ const Sidebar = () => {
         </button>
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

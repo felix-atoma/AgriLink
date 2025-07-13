@@ -1,29 +1,32 @@
 // utils/apiResponse.js
 
 export const successResponse = (res, data, statusCode = 200) => {
-  console.log('✅ SUCCESS:', data);
-  return res.status(statusCode).json({
+  const response = {
     success: true,
-    data
-  });
+    data: data || {}
+  };
+  console.log('✅ SUCCESS:', response);
+  return res.status(statusCode).json(response);
 };
 
 export const errorResponse = (res, message, statusCode = 400) => {
-  console.error('❌ ERROR:', message);
-  return res.status(statusCode).json({
+  const response = {
     success: false,
     error: message || 'Unknown error'
-  });
+  };
+  console.error('❌ ERROR:', response);
+  return res.status(statusCode).json(response);
 };
 
 export const validationError = (res, errors) => {
   const extractedErrors = Array.isArray(errors?.array?.()) ? errors.array() : errors;
-  console.error('⚠️ Validation errors:', extractedErrors);
-  return res.status(422).json({
+  const response = {
     success: false,
     error: 'Validation failed',
     details: extractedErrors
-  });
+  };
+  console.error('⚠️ Validation errors:', extractedErrors);
+  return res.status(422).json(response);
 };
 
 // Status-specific helpers

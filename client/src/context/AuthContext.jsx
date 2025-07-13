@@ -1,7 +1,8 @@
 import React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../services/apiClient'
+import apiClient from '../services/apiClient';
+import { useToast } from '../components/ui/Toast';
 
 const AuthContext = createContext();
 
@@ -10,6 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const initializeAuth = useCallback(async () => {
     try {
@@ -31,48 +33,128 @@ export const AuthProvider = ({ children }) => {
   }, [initializeAuth]);
 
   const login = async (credentials) => {
-  try {
-    setLoading(true);
-    const res = await apiClient.post('/auth/login', credentials);
-    const { user, token } = res.data.data;
+    try {
+      setLoading(true);
+      setError(null);
 
-    localStorage.setItem('token', token);
-    setUser(user);
+      const response = await apiClient.post('/auth/login', credentials);
+      console.log('Login response:', response);
 
-    navigate(user.role === 'farmer' ? '/dashboard/farmer' : '/dashboard');
-  } catch (err) {
-    setError(err.response?.data?.message || 'Login failed');
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-};
+      if (!response.data?.data?.token || !response.data?.data?.user) {
+        throw new Error('Invalid login response structure');
+      }
 
+      const { token, user } = response.data.data;
+      localStorage.setItem('token', token);
+      setUser(user);
 
- const register = async (userData) => {
-  try {
-    setLoading(true);
-    const res = await apiClient.post('/auth/register', userData);
+      const dashboardPath = user.role === 'farmer'
+        ? '/dashboard/farmer'
+        : user.role === 'buyer'
+        ? '/dashboard/buyer'
+        : '/';
 
-    const { user, token } = res.data.data; // ✅ Access the nested data
-    localStorage.setItem('token', token);
-    setUser(user);
+      navigate(dashboardPath, { replace: true });
 
-    navigate(user.role === 'farmer' ? '/dashboard/farmer' : '/dashboard');
-  } catch (err) {
-    setError(err.response?.data?.message || 'Registration failed');
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-};
+      toast({
+        title: 'Login Successful',
+        status: 'success',
+      });
 
+      return { success: true, user };
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Login failed';
 
+      console.error('Login error:', errorMessage);
+      setError(errorMessage);
+
+      toast({
+        title: 'Login Error',
+        description: errorMessage,
+        status: 'error',
+      });
+
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      localStorage.removeItem('token');
+
+      const response = await apiClient.post('/auth/register', userData);
+      console.log('Registration response:', response);
+
+      if (!response.data?.data?.token || !response.data?.data?.user) {
+        throw new Error('Invalid response structure from server');
+      }
+
+      const { token, user } = response.data.data;
+
+      localStorage.setItem('token', token);
+      setUser(user);
+
+      // Optional token verification
+      try {
+        const meResponse = await apiClient.get('/auth/me');
+        console.log('Token verification response:', meResponse.data);
+      } catch (verifyErr) {
+        console.error('Token verification failed:', verifyErr);
+        throw new Error('Received token is invalid');
+      }
+
+      const dashboardPath = user.role === 'farmer'
+        ? '/dashboard/farmer'
+        : user.role === 'buyer'
+        ? '/dashboard/buyer'
+        : '/';
+
+      navigate(dashboardPath, { state: { welcome: true }, replace: true });
+
+      toast({
+        title: 'Registration Successful',
+        description: 'Welcome to our platform!',
+        status: 'success',
+      });
+
+      return { success: true, user };
+    } catch (err) {
+      let errorMessage = 'Registration failed';
+      if (err.response) {
+        errorMessage = err.response.data?.message || err.response.data?.error || errorMessage;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      console.error('Registration error:', errorMessage);
+      setError(errorMessage);
+
+      toast({
+        title: 'Registration Error',
+        description: errorMessage,
+        status: 'error',
+      });
+
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    navigate('/login');
+    navigate('/login', {
+      state: { loggedOut: true }
+    });
   };
 
   const value = {
@@ -82,7 +164,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    refreshAuth: initializeAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

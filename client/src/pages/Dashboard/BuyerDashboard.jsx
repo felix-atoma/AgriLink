@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Sidebar from '../../components/layout/Sidebar';
 import BuyerStats from '../../components/buyer/BuyerStats';
 
@@ -8,22 +8,18 @@ const BuyerDashboard = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      {/* Sidebar for Buyer */}
+    <div className="flex min-h-screen">
       <Sidebar role="buyer" />
 
-      {/* Main Content Area */}
-      <main className="flex-grow p-6 lg:p-8 bg-gray-50" aria-label="Buyer dashboard">
+      <main className="flex-grow p-6 lg:p-8 bg-gray-50 ml-64">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          {t('dashboard.buyer')}
+          {t('dashboard.buyer') || 'Buyer Dashboard'}
         </h1>
 
-        {/* Top Dashboard Stats */}
-        <section className="overflow-x-auto mb-6">
+        <section className="overflow-x-auto mb-8">
           <BuyerStats />
         </section>
 
-        {/* Nested Routes (e.g. MyOrders) will render here */}
         <Outlet />
       </main>
     </div>

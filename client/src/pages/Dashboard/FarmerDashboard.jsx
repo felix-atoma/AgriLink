@@ -13,7 +13,7 @@ const FarmerDashboard = () => {
       <Sidebar role="farmer" />
 
       {/* Main Dashboard Content */}
-      <main className="flex-grow p-6 lg:p-8 bg-gray-50" aria-label="Farmer dashboard">
+      <main className="flex-grow p-6 lg:p-8 lg:pl-64 bg-gray-50" aria-label="Farmer dashboard">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           {t('dashboard.farmer')}
         </h1>

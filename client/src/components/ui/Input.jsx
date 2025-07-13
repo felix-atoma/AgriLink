@@ -16,7 +16,7 @@ const Input = ({ label, id, error, className = '', ...props }) => {
         } focus:outline-none focus:ring-green-500 focus:border-green-500`}
         {...props}
       />
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error?.message && <p className="text-red-500 text-sm mt-1">{error.message}</p>}
     </div>
   );
 };
@@ -24,7 +24,7 @@ const Input = ({ label, id, error, className = '', ...props }) => {
 Input.propTypes = {
   label: PropTypes.string,
   id: PropTypes.string.isRequired,
-  error: PropTypes.string,
+  error: PropTypes.object,
   className: PropTypes.string
 };
 

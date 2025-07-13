@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/AuthContext';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import Spinner from '../components/shared/Spinner';
 import RootLayout from '../components/layout/RootLayout';
@@ -15,7 +15,7 @@ const MyOrders = lazy(() => import('../pages/Dashboard/Buyer/MyOrders'));
 const MyProducts = lazy(() => import('../pages/Dashboard/Farmer/MyProducts'));
 
 const AppRoutes = () => {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -36,25 +36,19 @@ const AppRoutes = () => {
 
           {/* Protected Buyer Routes */}
           <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['buyer']}>
-                <BuyerDashboard />
-              </ProtectedRoute>
-            }
+            path="/dashboard/buyer"
+            element={<ProtectedRoute allowedRoles={['buyer']} />}
           >
+            <Route index element={<BuyerDashboard />} /> {/* ✅ this shows on /dashboard/buyer */}
             <Route path="my-orders" element={<MyOrders />} />
           </Route>
 
           {/* Protected Farmer Routes */}
           <Route
             path="/dashboard/farmer"
-            element={
-              <ProtectedRoute allowedRoles={['farmer']}>
-                <FarmerDashboard />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute allowedRoles={['farmer']} />}
           >
+            <Route index element={<FarmerDashboard />} />
             <Route path="my-products" element={<MyProducts />} />
           </Route>
 
