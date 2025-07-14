@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Sidebar from '../../components/layout/Sidebar';
-import BuyerStats from '../../components/buyer/BuyerStats';
+import Sidebar from '../../../components/layout/Sidebar';
+import BuyerStats from '../../../components/buyer/BuyerStats';
 
 const BuyerDashboard = () => {
   const { t } = useTranslation();

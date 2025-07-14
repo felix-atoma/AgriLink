@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';

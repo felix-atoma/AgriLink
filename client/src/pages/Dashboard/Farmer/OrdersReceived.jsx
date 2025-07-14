@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import Spinner from '@/components/shared/Spinner'
-import apiClient from '@/services/apiClient'
+import Spinner from '../../../components/shared/Spinner'
+import apiClient from '../../../services/apiClient'
 
 const OrdersReceived = () => {
   const { t } = useTranslation()

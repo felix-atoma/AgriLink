@@ -1,8 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../../components/layout/Sidebar';
-import DashboardStats from '../../components/farmer/DashboardStats';
+import Sidebar from '../../../components/layout/Sidebar';
+import DashboardStats from '../../../components/farmer/DashboardStats';
 
 const FarmerDashboard = () => {
   const { t } = useTranslation();

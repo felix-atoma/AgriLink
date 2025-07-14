@@ -1,13 +1,38 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCart } from '@/context/CartContext';
-import CartItem from '@/components/buyer/CartItem';
-import CartSummary from '@/components/buyer/CartSummary';
-import Spinner from '@/components/shared/Spinner';
+import { useCart } from '../context/CartContext';
+import CartItem from '../components/buyer/CartItem';
+import CartSummary from '../components/buyer/CartSummary';
+import Spinner from '../components/shared/Spinner';
+import toast from '../components/ui/toast'; // if it's a default export
+
+
+import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { t } = useTranslation();
-  const { cart, loading } = useCart();
+  const { cart, loading, createOrder, clearCart } = useCart();
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    // Sample hardcoded shipping address & paymentMethod
+    const shippingAddress = 'Accra, Ghana';
+    const paymentMethod = 'cash'; // You can replace this with a form later
+
+    const result = await createOrder(shippingAddress, paymentMethod);
+
+    if (result.success) {
+      toast.success('Order placed successfully!');
+      navigate('/dashboard/buyer/my-orders');
+    } else {
+      toast.error(result.message || 'Failed to place order');
+    }
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    toast.info('Cart cleared');
+  };
 
   if (loading) return <Spinner />;
 
@@ -30,7 +55,7 @@ const Cart = () => {
           </section>
 
           <aside aria-label="Cart summary">
-            <CartSummary />
+            <CartSummary onCheckout={handleCheckout} onClearCart={handleClearCart} />
           </aside>
         </div>
       )}

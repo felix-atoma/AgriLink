@@ -1,9 +1,9 @@
 import React from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import MapSelector from '@/components/shared/MapSelector';
-import Spinner from '@/components/shared/Spinner';
-import apiClient from '@/services/apiClient';
+import MapSelector from '../../../components/shared/MapSelector';
+import Spinner from '../../../components/shared/Spinner';
+import apiClient from '../../../services/apiClient';
 
 const NearbyFarms = () => {
   const { t } = useTranslation();

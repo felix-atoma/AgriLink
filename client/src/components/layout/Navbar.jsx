@@ -1,11 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
+import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { cartCount } = useCart();
   const { t } = useTranslation();
   const { language, changeLanguage } = useLanguage();
 
@@ -20,6 +23,7 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-4">
+            {/* Language Switcher */}
             <select
               value={language}
               onChange={(e) => changeLanguage(e.target.value)}
@@ -30,6 +34,19 @@ const Navbar = () => {
               <option value="fr">FR</option>
             </select>
 
+            {/* Cart Icon (Visible for buyers only) */}
+            {user?.role === 'buyer' && (
+              <Link to="/cart" className="relative group">
+                <ShoppingCartIcon className="w-6 h-6 text-gray-700 hover:text-primary-600" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full text-xs px-1.5">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            {/* Auth Links */}
             {user ? (
               <>
                 <Link

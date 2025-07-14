@@ -2,8 +2,8 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import Spinner from '@/components/shared/Spinner';
-import apiClient from '@/services/apiClient';
+import Spinner from '../../../components/shared/Spinner';
+import apiClient from '../../../services/apiClient';
 
 const EditProduct = () => {
   const { t } = useTranslation();

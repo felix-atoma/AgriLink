@@ -2,9 +2,10 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import Spinner from '@/components/shared/Spinner';
-import OrderTracker from '@/components/buyer/OrderTracker';
-import apiClient from '@/services/apiClient';
+import Spinner from '../../../components/shared/Spinner';
+import OrderTracker from '../../../components/buyer/OrderTracker';
+import apiClient from '../../../services/apiClient';
+import { useToast } from '../../../components/ui/Toast';
 
 const OrderDetails = () => {
   const { t } = useTranslation();
@@ -12,21 +13,32 @@ const OrderDetails = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const { data } = await apiClient.get(`/orders/${id}`);
         setOrder(data);
+        toast({
+          title: t('order.loaded_success'),
+          status: 'success',
+        });
       } catch (err) {
-        setError(err.response?.data?.message || err.message);
+        const errorMsg = err.response?.data?.message || err.message;
+        setError(errorMsg);
+        toast({
+          title: t('errors.order_fetch_failed'),
+          description: errorMsg,
+          status: 'error',
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrder();
-  }, [id]);
+  }, [id, t, toast]);
 
   if (loading) return <Spinner />;
   if (error)

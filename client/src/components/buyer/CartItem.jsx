@@ -1,11 +1,14 @@
-import { useCart } from '@/context/CartContext';
+import React from 'react';
+import { useCart } from '../../context/CartContext';
 import { useTranslation } from 'react-i18next';
-import Button from '@/components/ui/Button';
+import Button from '../ui/Button';
 import { TrashIcon } from '@heroicons/react/24/outline';
 
 const CartItem = ({ item }) => {
   const { t } = useTranslation();
   const { updateQuantity, removeFromCart } = useCart();
+
+  if (!item?.product) return null; // ✅ Prevent crash if product is missing
 
   const handleQuantityChange = (newQuantity) => {
     if (newQuantity < 1) return;
@@ -22,15 +25,19 @@ const CartItem = ({ item }) => {
       <div className="w-20 h-20 overflow-hidden rounded-md border">
         <img
           src={item.product.images?.[0] || '/images/placeholder-product.jpg'}
-          alt={item.product.name}
+          alt={item.product.name || 'Product Image'}
           className="w-full h-full object-cover"
         />
       </div>
 
       {/* Product Info */}
       <div className="flex-1">
-        <h3 className="text-base font-semibold text-gray-800">{item.product.name}</h3>
-        <p className="text-sm text-gray-500">${item.product.price.toFixed(2)}</p>
+        <h3 className="text-base font-semibold text-gray-800">
+          {item.product.name || t('product.unknown')}
+        </h3>
+        <p className="text-sm text-gray-500">
+          ${item.product.price?.toFixed(2) || '0.00'}
+        </p>
       </div>
 
       {/* Actions */}

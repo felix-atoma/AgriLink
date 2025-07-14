@@ -1,3 +1,4 @@
+// src/components/layout/Sidebar.jsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -7,7 +8,8 @@ import {
   ShoppingBagIcon,
   PlusCircleIcon,
   ChartBarIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
+  MapPinIcon
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
@@ -20,18 +22,18 @@ const Sidebar = () => {
     ? [
         { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/farmer' },
         { key: 'products.myProducts', icon: ShoppingBagIcon, to: '/dashboard/farmer/my-products' },
-        { key: 'products.addProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/add-product' },
-        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders' }
+        { key: 'products.editProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/edit-product/:id' },
+        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders-received' }
       ]
     : [
         { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/buyer' },
-        { key: 'products.discover', icon: ShoppingBagIcon, to: '/dashboard/buyer/discover' },
-        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/my-orders' }
+        { key: 'products.OrderDetails', icon: ShoppingBagIcon, to: '/dashboard/buyer/order-details/:id' },
+        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/my-orders' },
+        { key: 'nearby.farms', icon: MapPinIcon, to: '/dashboard/buyer/nearby-farms' }
       ];
 
   return (
     <aside className="w-64 bg-white shadow-md h-screen fixed top-0 left-0 z-20 flex flex-col">
-      {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-xl font-bold text-primary-600">
           {t('common.appName')}
@@ -41,7 +43,6 @@ const Sidebar = () => {
         </p>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
@@ -61,7 +62,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Logout */}
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={logout}

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import FarmerProductList from '@/components/farmer/FarmerProductList';
-import AddProductForm from '@/components/farmer/AddProductForm';
-import Spinner from '@/components/shared/Spinner';
-import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
-import apiClient from '@/services/apiClient';
+import FarmerProductList from '../../../components/farmer/FarmerProductList';
+import AddProductForm from '../../../components/farmer/AddProductForm';
+import Spinner from '../../../components/shared/Spinner';
+import Modal from '../../../components/ui/Modal';
+import Button from '../../../components/ui/Button';
+import apiClient from '../../../services/apiClient';
 
 const MyProducts = () => {
   const { t } = useTranslation();

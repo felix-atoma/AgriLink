@@ -1,6 +1,7 @@
-import { useCart } from '@/context/CartContext';
+import React from 'react';
+import { useCart } from '../../context/CartContext';
 import { useTranslation } from 'react-i18next';
-import Button from '@/components/ui/Button';
+import Button from '../ui/Button';
 
 const CartSummary = ({ onCheckout, onClearCart }) => {
   const { cartTotal, cartCount } = useCart();
