@@ -12,99 +12,216 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(storedCart);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [loading, setLoading] = useState(false); // 🆕 For general loading like order creation
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Sync cart with localStorage
   useEffect(() => {
-    setStoredCart(cart);
+    try {
+      setStoredCart(cart);
+    } catch (storageError) {
+      console.error('Failed to save cart to localStorage:', storageError);
+      setError('Failed to save your cart. Your changes may not persist.');
+    }
   }, [cart, setStoredCart]);
 
-  // Add product to cart
   const addToCart = (product, quantity = 1) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item._id === product._id);
-
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+    try {
+      if (!product?._id) {
+        throw new Error('Cannot add invalid product to cart - missing product ID');
       }
 
-      return [...prevCart, { ...product, quantity }];
-    });
-  };
+      setCart((prevCart) => {
+        const existingItem = prevCart.find((item) => item?.product?._id === product._id);
+        
+        if (existingItem) {
+          return prevCart.map((item) =>
+            item?.product?._id === product._id
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        }
 
-  // Remove product
-  const removeFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item._id !== productId));
-  };
-
-  // Update quantity
-  const updateQuantity = (productId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
+        return [...prevCart, { product, quantity }];
+      });
+    } catch (error) {
+      console.error('Failed to add item to cart:', error);
+      setError(error.message);
     }
-
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
-      )
-    );
   };
 
-  // Clear all
+  const removeFromCart = (productId) => {
+    try {
+      if (!productId) {
+        throw new Error('Cannot remove item - missing product ID');
+      }
+      setCart((prevCart) => prevCart.filter((item) => item.product?._id !== productId));
+    } catch (error) {
+      console.error('Failed to remove item from cart:', error);
+      setError(error.message);
+    }
+  };
+
+  const updateQuantity = (productId, quantity) => {
+    try {
+      if (!productId) {
+        throw new Error('Cannot update quantity - missing product ID');
+      }
+      
+      const numQuantity = Number(quantity);
+      if (isNaN(numQuantity)) {
+        throw new Error('Quantity must be a number');
+      }
+
+      if (numQuantity <= 0) {
+        removeFromCart(productId);
+      } else {
+        setCart((prevCart) =>
+          prevCart.map((item) =>
+            item.product?._id === productId ? { ...item, quantity: numQuantity } : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+      setError(error.message);
+    }
+  };
+
   const clearCart = () => {
     setCart([]);
+    setError(null);
   };
 
-  // Totals
   const cartTotal = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + (item.product?.price || 0) * item.quantity,
     0
   );
 
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  // ✅ Create order
-  const createOrder = async (shippingAddress, paymentMethod = 'cash') => {
+  const createOrder = async (orderData) => {
     try {
       setLoading(true);
+      setError(null);
 
-      const products = cart.map((item) => ({
-        product: item._id,
-        quantity: item.quantity
-      }));
+      // Validate input structure
+      if (!orderData?.products || !Array.isArray(orderData.products)) {
+        throw new Error(
+          'Invalid order data format. Expected { products: [...] } but got: ' + 
+          JSON.stringify(orderData, null, 2)
+        );
+      }
 
-      const result = await apiCreateOrder({
-        products,
-        shippingAddress,
-        paymentMethod // ✅ Required by backend
+      if (orderData.products.length === 0) {
+        throw new Error('Cannot create order - your cart is empty');
+      }
+
+      // Transform and validate each product
+      const products = orderData.products.map((item, index) => {
+        if (!item?.product) {
+          throw new Error(
+            `Missing product reference in item ${index + 1}. ` +
+            `Expected { product: "id", quantity: number } but got: ` +
+            JSON.stringify(item, null, 2)
+          );
+        }
+
+        const quantity = Number(item.quantity);
+        if (isNaN(quantity) || quantity < 1) {
+          throw new Error(
+            `Invalid quantity for product ${item.product}. ` +
+            `Expected positive number but got: ${item.quantity}`
+          );
+        }
+
+        return {
+          product: item.product,
+          quantity: quantity
+        };
       });
 
-      if (result.success) {
-        clearCart();
-        return { success: true, data: result.data };
-      } else {
-        return { success: false, message: result.message };
+      // Validate shipping address
+      if (!orderData.shippingAddress?.street || 
+          !orderData.shippingAddress?.city || 
+          !orderData.shippingAddress?.country) {
+        throw new Error(
+          'Complete shipping address required (street, city, country). ' +
+          `Received: ${JSON.stringify(orderData.shippingAddress, null, 2)}`
+        );
       }
+
+      const payload = {
+        products,
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod || 'cash'
+      };
+
+      console.debug('Submitting order with payload:', payload);
+      const response = await apiCreateOrder(payload);
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message || 
+          'Order creation failed. Please try again later.'
+        );
+      }
+
+      clearCart();
+      return {
+        success: true,
+        data: response.data,
+        message: response.message || 'Order created successfully!'
+      };
+
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error('[CartContext] Order creation failed:', {
+        error: error.message,
+        stack: error.stack,
+        orderData
+      });
+
+      setError(error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message,
+        errors: error.response?.data?.errors || [],
+        status: error.response?.status
+      };
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Fetch user orders
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const result = await apiGetOrders();
-      setOrders(result.data || []);
+      setError(null);
+      
+      const response = await apiGetOrders();
+      const orders = response.data?.orders || response.orders || [];
+      
+      if (!Array.isArray(orders)) {
+        throw new Error(
+          'Invalid orders data received. Expected array but got: ' +
+          JSON.stringify(orders, null, 2)
+        );
+      }
+
+      setOrders(orders);
+      return orders;
+
     } catch (error) {
-      console.error('Failed to fetch orders', error);
+      console.error('Failed to fetch orders:', {
+        error: error.message,
+        stack: error.stack
+      });
+
+      setError(
+        error.response?.data?.message || 
+        'Failed to load your orders. Please try again later.'
+      );
+      throw error;
     } finally {
       setLoadingOrders(false);
     }
@@ -124,7 +241,9 @@ export const CartProvider = ({ children }) => {
         orders,
         fetchOrders,
         loading,
-        loadingOrders
+        loadingOrders,
+        error,
+        setError // Allow consumers to clear errors
       }}
     >
       {children}
@@ -132,11 +251,21 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Hook
 export const useCart = () => {
   const context = useContext(CartContext);
+  
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    const error = new Error(
+      'useCart must be used within a CartProvider.\n\n' +
+      'Possible solutions:\n' +
+      '1. Wrap your root component with <CartProvider>\n' +
+      '2. If using Next.js, add "use client" directive\n' +
+      '3. Check for multiple versions of the context'
+    );
+    
+    console.error(error.message);
+    throw error;
   }
+
   return context;
 };

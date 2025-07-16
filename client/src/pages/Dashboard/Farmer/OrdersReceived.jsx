@@ -1,54 +1,99 @@
-import React from 'react';
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import Spinner from '../../../components/shared/Spinner'
-import apiClient from '../../../services/apiClient'
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import Spinner from '../../../components/shared/Spinner';
+import apiClient from '../../../services/apiClient';
 
 const OrdersReceived = () => {
-  const { t } = useTranslation()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [updatingOrderId, setUpdatingOrderId] = useState(null)
+  const { t } = useTranslation();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const { data } = await apiClient.get('/orders/received')
-        setOrders(data)
+        const { data } = await apiClient.get('/orders/received');
+        setOrders(data?.data?.docs || []); // Handle paginated response
       } catch (err) {
-        setError(err?.response?.data?.message || 'Failed to load orders.')
+        setError(err?.response?.data?.message || 'Failed to load orders.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchOrders()
-  }, [])
+    fetchOrders();
+  }, []);
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      setUpdatingOrderId(orderId)
-      await apiClient.patch(`/orders/${orderId}`, { status })
+      setUpdatingOrderId(orderId);
+      await apiClient.patch(`/orders/${orderId}`, { status });
       setOrders((prev) =>
         prev.map((order) =>
           order._id === orderId ? { ...order, status } : order
         )
-      )
+      );
     } catch (err) {
-      setError(err?.response?.data?.message || 'Failed to update order status.')
+      setError(err?.response?.data?.message || 'Failed to update order status.');
     } finally {
-      setUpdatingOrderId(null)
+      setUpdatingOrderId(null);
     }
-  }
+  };
 
-  if (loading) return <Spinner />
-  if (error) return <div className="text-red-600 text-sm">{error}</div>
+  const getAnalytics = () => {
+    const total = orders.length;
+    const byStatus = {
+      processing: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0
+    };
+    let totalRevenue = 0;
+
+    orders.forEach((order) => {
+      if (byStatus[order.status] !== undefined) {
+        byStatus[order.status]++;
+      }
+      totalRevenue += order.total || 0;
+    });
+
+    return { total, byStatus, totalRevenue };
+  };
+
+  const { total, byStatus, totalRevenue } = getAnalytics();
+
+  if (loading) return <Spinner />;
+  if (error) return <div className="text-red-600 text-sm">{error}</div>;
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">{t('farmer.orders_received')}</h2>
 
+      {/* 📊 Analytics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded shadow text-center">
+          <h4 className="text-gray-500 text-sm">{t('order.total_orders')}</h4>
+          <p className="text-xl font-bold">{total}</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <h4 className="text-gray-500 text-sm">{t('order.total_revenue')}</h4>
+          <p className="text-xl font-bold">${totalRevenue.toFixed(2)}</p>
+        </div>
+        <div className="bg-white p-4 rounded shadow text-center">
+          <h4 className="text-gray-500 text-sm">{t('order.by_status')}</h4>
+          <div className="mt-2 space-y-1 text-sm">
+            {Object.entries(byStatus).map(([key, value]) => (
+              <div key={key} className="flex justify-between">
+                <span className="capitalize">{t(`orderStatus.${key}`)}</span>
+                <span>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Orders List */}
       {orders.length === 0 ? (
         <p className="text-gray-600">{t('farmer.no_orders')}</p>
       ) : (
@@ -113,7 +158,7 @@ const OrdersReceived = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default OrdersReceived
+export default OrdersReceived;

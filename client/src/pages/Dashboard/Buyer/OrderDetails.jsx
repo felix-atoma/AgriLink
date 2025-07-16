@@ -1,15 +1,15 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Spinner from '../../../components/shared/Spinner';
 import OrderTracker from '../../../components/buyer/OrderTracker';
 import apiClient from '../../../services/apiClient';
 import { useToast } from '../../../components/ui/Toast';
+import { isValidObjectId } from '../../../utils/validateForm';
 
 const OrderDetails = () => {
   const { t } = useTranslation();
-  const { id } = useParams();
+  const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,18 +18,24 @@ const OrderDetails = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const { data } = await apiClient.get(`/orders/${id}`);
-        setOrder(data);
-        toast({
-          title: t('order.loaded_success'),
-          status: 'success',
-        });
+        // Validate orderId before fetching
+        if (!isValidObjectId(orderId)) {
+          throw new Error(t('errors.invalidOrderId'));
+        }
+
+        const { data } = await apiClient.get(`/orders/${orderId}`);
+        
+        if (!data?.data?._id) {
+          throw new Error(t('errors.orderNotFound'));
+        }
+
+        setOrder(data.data);
       } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg);
+        console.error('[OrderDetails] Error:', err);
+        setError(err.response?.data?.message || err.message);
         toast({
-          title: t('errors.order_fetch_failed'),
-          description: errorMsg,
+          title: t('errors.orderFetchFailed'),
+          description: err.response?.data?.message || err.message,
           status: 'error',
         });
       } finally {
@@ -38,79 +44,134 @@ const OrderDetails = () => {
     };
 
     fetchOrder();
-  }, [id, t, toast]);
+  }, [orderId, t, toast]);
 
-  if (loading) return <Spinner />;
-  if (error)
+  const formatDate = (dateString) => {
+    return new Intl.DateTimeFormat(t('locale'), {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(dateString));
+  };
+
+  if (loading) return <Spinner className="mt-8" />;
+
+  if (error) {
     return (
-      <div className="text-red-600 bg-red-100 p-4 rounded-md mt-4">
-        {error}
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-red-50 text-red-600 p-4 rounded-md mb-4">
+          {error}
+        </div>
+        <Link 
+          to="/dashboard/buyer/orders" 
+          className="text-blue-600 hover:underline"
+        >
+          {t('backToOrders')}
+        </Link>
       </div>
     );
+  }
 
   if (!order) return null;
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-6">
-        {t('order.details')} #{order._id?.slice(0, 8)}
-      </h2>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex justify-between items-start mb-6">
+        <h1 className="text-2xl font-bold">
+          {t('orderDetails.title')} #{order._id.slice(-8).toUpperCase()}
+        </h1>
+        <span className="text-sm text-gray-500">
+          {formatDate(order.createdAt)}
+        </span>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Side: Items */}
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Order Items */}
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              {t('order.items')}
-            </h3>
-
-            {order.products?.length > 0 ? (
-              order.products.map((item) => (
-                <div
-                  key={item.product?._id}
-                  className="flex justify-between items-center border-b py-3"
-                >
-                  <div>
-                    <p className="font-medium">{item.product?.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {item.quantity} × ${item.product?.price?.toFixed(2)}
-                    </p>
-                  </div>
-                  <p className="text-right font-semibold">
-                    ${(item.quantity * item.product?.price).toFixed(2)}
+            <h2 className="text-lg font-semibold mb-4">
+              {t('orderDetails.items')}
+            </h2>
+            
+            {order.products.map((item, index) => (
+              <div 
+                key={`${item.product?._id || index}`} 
+                className="flex justify-between py-3 border-b last:border-b-0"
+              >
+                <div>
+                  <p className="font-medium">
+                    {item.product?.name || item.name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {t('quantity')}: {item.quantity}
                   </p>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500">{t('order.no_items')}</p>
-            )}
+                <p className="font-medium">
+                  ${((item.product?.price || item.price) * item.quantity).toFixed(2)}
+                </p>
+              </div>
+            ))}
 
             <div className="flex justify-between mt-6 pt-4 border-t font-bold text-lg">
-              <span>{t('order.total')}</span>
+              <span>{t('orderDetails.total')}</span>
               <span>${order.total?.toFixed(2)}</span>
             </div>
           </div>
+
+          {/* Shipping Information */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">
+              {t('orderDetails.shippingInfo')}
+            </h2>
+            <p className="mb-1">
+              <span className="font-medium">{t('orderDetails.address')}:</span> {order.shippingAddress.street}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">{t('orderDetails.city')}:</span> {order.shippingAddress.city}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">{t('orderDetails.country')}:</span> {order.shippingAddress.country}
+            </p>
+            {order.shippingAddress.postalCode && (
+              <p>
+                <span className="font-medium">{t('orderDetails.postalCode')}:</span> {order.shippingAddress.postalCode}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Right Side: Tracker */}
-        <aside>
-          <div className="bg-white rounded-lg shadow p-6 h-full">
-            <h3 className="text-lg font-semibold mb-3">
-              {t('order.status')}
-            </h3>
+        {/* Order Status */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">
+              {t('orderDetails.status')}
+            </h2>
             <OrderTracker status={order.status} />
-            <div className="mt-6">
-              <h4 className="text-sm text-gray-600 font-medium mb-1">
-                {t('order.shipping_address')}
-              </h4>
-              <p className="text-gray-700">
-                {order.shippingAddress || t('order.no_address')}
-              </p>
-            </div>
           </div>
-        </aside>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">
+              {t('orderDetails.payment')}
+            </h2>
+            <p className="capitalize">
+              {order.paymentMethod.replace('_', ' ')}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              {t('orderDetails.paymentStatus')}: {order.paymentStatus}
+            </p>
+          </div>
+
+          <Link
+            to="/dashboard/buyer/orders"
+            className="block w-full text-center py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+          >
+            {t('backToOrders')}
+          </Link>
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 

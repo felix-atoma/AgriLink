@@ -14,5 +14,19 @@
   "date": "Date",
   "items": "Items",
   "statusUpdated": "Order status updated",
-  "noOrders": "No orders found"
+  "noOrders": "No orders found",
+  "errors": {
+    "invalid_order_id": "Invalid order ID format",
+    "order_fetch_failed": "Failed to fetch order"
+  },
+  "order": {
+    "details": "Order Details",
+    "items": "Items",
+    "total": "Total",
+    "status": "Status",
+    "shipping_address": "Shipping Address",
+    "no_items": "No items in this order",
+    "no_address": "No shipping address provided",
+    "loaded_success": "Order loaded successfully"
+  }
 }

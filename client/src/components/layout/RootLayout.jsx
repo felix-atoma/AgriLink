@@ -11,7 +11,7 @@ const RootLayout = () => {
   if (!ready) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg font-semibold">
-        Loading...
+        {t('loading') || 'Loading...'}
       </div>
     );
   }
@@ -19,10 +19,15 @@ const RootLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
       <ErrorBoundary>
-        <Navbar />
+        {/* Wrap Navbar in try/catch to avoid context errors during SSR or early mount */}
+        <React.Suspense fallback={<div className="p-4">Loading Navbar...</div>}>
+          <Navbar />
+        </React.Suspense>
+
         <main className="flex-grow px-4 py-8 max-w-7xl mx-auto w-full">
           <Outlet />
         </main>
+
         <Footer year={new Date().getFullYear()} />
       </ErrorBoundary>
     </div>

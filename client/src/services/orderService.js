@@ -1,65 +1,141 @@
-import apiClient from './apiClient'
+import apiClient from './apiClient';
 
-/**
- * Fetch all orders for the logged-in buyer.
- */
-export const getOrders = async () => {
-  try {
-    const response = await apiClient.get('/orders/my-orders')
-    return response.data
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to fetch orders')
-  }
-}
+// Helper to extract errors
+const handleError = (error, fallbackMessage = 'Request failed') => {
+  const res = error?.response;
+  const message = res?.data?.message || error.message || fallbackMessage;
 
-/**
- * Fetch orders received (for farmers).
- */
-export const getReceivedOrders = async () => {
-  try {
-    const response = await apiClient.get('/orders/received')
-    return response.data
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to fetch received orders')
-  }
-}
+  console.error('[OrderService Error]', {
+    status: res?.status,
+    message,
+    errors: res?.data?.errors,
+    url: error?.config?.url,
+    sentPayload: error?.config?.data,
+  });
 
-/**
- * Get full details of a specific order by ID.
- * @param {string} id - Order ID
- */
-export const getOrderDetails = async (id) => {
-  try {
-    const response = await apiClient.get(`/orders/${id}`)
-    return response.data
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to fetch order details')
-  }
-}
+  return {
+    success: false,
+    status: res?.status || 500,
+    message,
+    errors: res?.data?.errors || [],
+  };
+};
 
-/**
- * Create a new order.
- * @param {Object} orderData - Payload including products, shippingAddress, etc.
- */
+// ✅ Create Order
 export const createOrder = async (orderData) => {
   try {
-    const response = await apiClient.post('/orders', orderData)
-    return response.data
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to create order')
-  }
-}
+    if (!orderData || !Array.isArray(orderData.products)) {
+      throw new Error('Invalid order data: products must be an array');
+    }
 
-/**
- * Update the status of an order.
- * @param {string} id - Order ID
- * @param {string} status - New status (e.g., "shipped", "delivered")
- */
-export const updateOrderStatus = async (id, status) => {
-  try {
-    const response = await apiClient.patch(`/orders/${id}`, { status })
-    return response.data
+    const payload = {
+      products: orderData.products.map((item, i) => {
+        if (!item.product) throw new Error(`Missing product ID at index ${i}`);
+        const quantity = Number(item.quantity);
+        if (!quantity || quantity < 1) throw new Error(`Invalid quantity for product ${item.product}`);
+        return { product: item.product, quantity };
+      }),
+      shippingAddress: {
+        street: orderData.shippingAddress?.street || '',
+        city: orderData.shippingAddress?.city || '',
+        country: orderData.shippingAddress?.country || '',
+        ...(orderData.shippingAddress?.postalCode && {
+          postalCode: orderData.shippingAddress.postalCode,
+        }),
+      },
+      paymentMethod: orderData.paymentMethod || 'cash',
+    };
+
+    // Final shipping validation
+    const { street, city, country } = payload.shippingAddress;
+    if (!street || !city || !country) {
+      throw new Error('Complete shipping address is required');
+    }
+
+    console.log('[createOrder] Payload:', payload);
+    const res = await apiClient.post('/orders', payload);
+
+    return {
+      success: true,
+      data: res.data?.data,
+      message: res.data?.message || 'Order created successfully',
+    };
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Failed to update order status')
+    return handleError(error, 'Order creation failed');
   }
-}
+};
+
+// ✅ Get My Orders
+export const getOrders = async (queryParams = {}) => {
+  try {
+    const res = await apiClient.get('/orders/my-orders', { params: queryParams });
+
+    return {
+      success: true,
+      orders: res.data?.data,
+      pagination: res.data?.pagination,
+    };
+  } catch (error) {
+    return handleError(error, 'Failed to fetch orders');
+  }
+};
+
+// ✅ Get Orders Received (for sellers)
+export const getReceivedOrders = async (queryParams = {}) => {
+  try {
+    const res = await apiClient.get('/orders/received', { params: queryParams });
+
+    return {
+      success: true,
+      orders: res.data?.data,
+      pagination: res.data?.pagination,
+    };
+  } catch (error) {
+    return handleError(error, 'Failed to fetch received orders');
+  }
+};
+
+// ✅ Get Order by ID
+export const getOrderDetails = async (id) => {
+  try {
+    const res = await apiClient.get(`/orders/${id}`);
+
+    return {
+      success: true,
+      order: res.data?.data,
+    };
+  } catch (error) {
+    return handleError(error, 'Failed to fetch order details');
+  }
+};
+
+// ✅ Update Order Status
+export const updateOrderStatus = async (id, statusData) => {
+  try {
+    const res = await apiClient.patch(`/orders/${id}/status`, statusData);
+
+    return {
+      success: true,
+      order: res.data?.data,
+      message: res.data?.message || 'Order status updated',
+    };
+  } catch (error) {
+    return handleError(error, 'Failed to update order status');
+  }
+};
+
+// ✅ Cancel Order
+export const cancelOrder = async (id, reason) => {
+  try {
+    const res = await apiClient.delete(`/orders/${id}`, {
+      data: { reason },
+    });
+
+    return {
+      success: true,
+      message: res.data?.message || 'Order cancelled successfully',
+    };
+  } catch (error) {
+    return handleError(error, 'Failed to cancel order');
+  }
+};

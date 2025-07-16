@@ -26,7 +26,7 @@ const FarmerProductList = ({ products, onEdit, onDelete }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {products.map((product) => (
-            <tr key={product.id}>
+            <tr key={product._id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
@@ -44,7 +44,7 @@ const FarmerProductList = ({ products, onEdit, onDelete }) => {
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${product.price.toFixed(2)}
+                ${product.price?.toFixed(2)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {product.stock}
@@ -61,7 +61,7 @@ const FarmerProductList = ({ products, onEdit, onDelete }) => {
                 <Button
                   size="sm"
                   variant="danger"
-                  onClick={() => onDelete(product.id)}
+                  onClick={() => onDelete(product._id)}
                 >
                   {t('common.delete')}
                 </Button>

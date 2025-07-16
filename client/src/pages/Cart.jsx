@@ -4,34 +4,66 @@ import { useCart } from '../context/CartContext';
 import CartItem from '../components/buyer/CartItem';
 import CartSummary from '../components/buyer/CartSummary';
 import Spinner from '../components/shared/Spinner';
-import toast from '../components/ui/toast'; // if it's a default export
-
-
+import { useToast } from '../components/ui/Toast'
 import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { t } = useTranslation();
-  const { cart, loading, createOrder, clearCart } = useCart();
+  const { cart, loading, clearCart, createOrder } = useCart();
+  const { toast } = useToast(); // ✅ FIXED: destructure correctly
   const navigate = useNavigate();
 
   const handleCheckout = async () => {
-    // Sample hardcoded shipping address & paymentMethod
-    const shippingAddress = 'Accra, Ghana';
-    const paymentMethod = 'cash'; // You can replace this with a form later
+    try {
+      const validCartItems = cart.filter(
+        (item) => item?.product?._id && item.quantity > 0
+      );
 
-    const result = await createOrder(shippingAddress, paymentMethod);
+      if (!validCartItems.length) {
+        throw new Error(t('cart.empty_checkout') || 'Your cart has no valid products');
+      }
 
-    if (result.success) {
-      toast.success('Order placed successfully!');
+      const orderData = {
+        products: validCartItems.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity
+        })),
+        shippingAddress: {
+          street: '123 Main St',
+          city: 'Accra',
+          country: 'Ghana'
+        },
+        paymentMethod: 'cash'
+      };
+
+      console.log('[handleCheckout] Sending orderData:', orderData);
+
+      const result = await createOrder(orderData);
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to create order');
+      }
+
+      toast({
+        title: t('order.success') || 'Order placed successfully',
+        status: 'success'
+      });
+
       navigate('/dashboard/buyer/my-orders');
-    } else {
-      toast.error(result.message || 'Failed to place order');
+    } catch (error) {
+      toast({
+        title: error.message || 'Checkout failed',
+        status: 'error'
+      });
     }
   };
 
   const handleClearCart = () => {
     clearCart();
-    toast.info('Cart cleared');
+    toast({
+      title: t('cart.cleared') || 'Cart cleared',
+      status: 'info'
+    });
   };
 
   if (loading) return <Spinner />;
@@ -49,13 +81,21 @@ const Cart = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section className="lg:col-span-2 space-y-4" aria-label="Cart items">
-            {cart.map((item) => (
-              <CartItem key={item._id || item.id} item={item} />
-            ))}
+            {cart.map((item, idx) =>
+              item?.product?._id ? (
+                <CartItem
+                  key={`${item.product._id}-${item.variantId || idx}`}
+                  item={item}
+                />
+              ) : null
+            )}
           </section>
 
           <aside aria-label="Cart summary">
-            <CartSummary onCheckout={handleCheckout} onClearCart={handleClearCart} />
+            <CartSummary
+              onCheckout={handleCheckout}
+              onClearCart={handleClearCart}
+            />
           </aside>
         </div>
       )}

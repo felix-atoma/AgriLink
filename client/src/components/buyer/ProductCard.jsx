@@ -1,60 +1,89 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCartIcon, MapPinIcon } from '@heroicons/react/24/outline';
-import { useCart } from '../../context/CartContext';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Button from '../ui/Button';
+import { useCart } from '../../context/CartContext';
+import { useToast } from '../ui/Toast';
+import { ShoppingCartIcon } from '@heroicons/react/24/solid';
 
 const ProductCard = ({ product }) => {
   const { t } = useTranslation();
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
-  const handleAddToCart = async () => {
-    await addToCart(product._id); // Optionally show toast here
+  const [selectedVariant, setSelectedVariant] = useState('');
+  const [quantity, setQuantity] = useState(1);
+
+  const handleAddToCart = () => {
+    if (!product || !product._id) {
+      toast({ title: 'Invalid product', status: 'error' });
+      return;
+    }
+
+    if (quantity < 1) {
+      toast({ title: 'Quantity must be at least 1', status: 'error' });
+      return;
+    }
+
+    const productToAdd = {
+      ...product,
+      variantId: selectedVariant,
+      variantName: selectedVariant,
+    };
+
+    addToCart(productToAdd, quantity);
+
+    toast({
+      title: t('cart.added') || 'Product added to cart',
+      status: 'success',
+    });
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
-      <Link to={`/products/${product._id}`} className="block">
-        <div className="h-48 bg-gray-100 overflow-hidden">
-          <img
-            src={product.images?.[0] || '/images/placeholder-product.jpg'}
-            alt={product.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </Link>
+    <div className="border rounded-lg p-4 shadow-sm bg-white flex flex-col justify-between">
+      <img
+        src={product.images?.[0] || '/images/placeholder-product.jpg'}
+        alt={product.name}
+        className="w-full h-48 object-cover mb-3 rounded"
+        onError={(e) => {
+          e.target.src = '/images/placeholder-product.jpg';
+        }}
+      />
 
-      <div className="p-4">
-        <Link to={`/products/${product._id}`}>
-          <h3 className="text-lg font-semibold text-gray-800 hover:text-primary-600 transition">
-            {product.name}
-          </h3>
-        </Link>
+      <div>
+        <h2 className="text-lg font-semibold text-gray-800">{product.name}</h2>
+        <p className="text-gray-600 mb-2">${product.price?.toFixed(2)}</p>
 
-        {product.farmer?.farmName && (
-          <div className="flex items-center text-sm text-gray-600 mt-1 mb-2">
-            <MapPinIcon className="h-4 w-4 mr-1" />
-            <span>{product.farmer.farmName}</span>
-          </div>
+        {product.variants?.length > 0 && (
+          <select
+            className="mb-2 w-full border rounded px-2 py-1"
+            value={selectedVariant}
+            onChange={(e) => setSelectedVariant(e.target.value)}
+          >
+            <option value="">{t('product.select_variant') || 'Select variant'}</option>
+            {product.variants.map((variant) => (
+              <option key={variant} value={variant}>
+                {variant}
+              </option>
+            ))}
+          </select>
         )}
 
-        <p className="text-gray-500 text-sm mb-3 line-clamp-2">
-          {product.description}
-        </p>
+        <div className="flex items-center justify-between">
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="w-16 border rounded px-2 py-1"
+          />
 
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-bold text-primary-600">
-            ${product.price.toFixed(2)}
-          </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="p-2"
+          {/* Cart Icon Button */}
+          <button
             onClick={handleAddToCart}
+            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full"
+            aria-label="Add to cart"
           >
-            <ShoppingCartIcon className="h-5 w-5" />
-          </Button>
+            <ShoppingCartIcon className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

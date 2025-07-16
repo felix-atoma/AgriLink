@@ -1,18 +1,32 @@
 {
-  "received": "Commandes reçues",
-  "myOrders": "Mes commandes",
-  "orderDetails": "Détails de la commande",
+  "received": "Commandes Reçues",
+  "myOrders": "Mes Commandes",
+  "orderDetails": "Détails de la Commande",
   "status": "Statut",
   "statuses": {
-    "pending": "En attente",
-    "processing": "En traitement",
-    "shipped": "Expédiée",
-    "delivered": "Livrée",
-    "cancelled": "Annulée"
+    "pending": "En Attente",
+    "processing": "En Cours de Traitement",
+    "shipped": "Expédié",
+    "delivered": "Livré",
+    "cancelled": "Annulé"
   },
   "total": "Total",
   "date": "Date",
   "items": "Articles",
   "statusUpdated": "Statut de la commande mis à jour",
-  "noOrders": "Aucune commande trouvée"
+  "noOrders": "Aucune Commande Trouvée",
+  "errors": {
+    "invalid_order_id": "Format d'ID de Commande Invalide",
+    "order_fetch_failed": "Échec du Chargement de la Commande"
+  },
+  "order": {
+    "details": "Détails de la Commande",
+    "items": "Articles",
+    "total": "Total",
+    "status": "Statut",
+    "shipping_address": "Adresse de Livraison",
+    "no_items": "Aucun Article dans cette Commande",
+    "no_address": "Aucune Adresse de Livraison Fournie",
+    "loaded_success": "Commande Chargée avec Succès"
+  }
 }

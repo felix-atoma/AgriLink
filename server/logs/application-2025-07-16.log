@@ -1,0 +1,26 @@
+2025-07-16 03:26:57 info: 🚀 Server running in development mode on port 5000
+2025-07-16 03:27:27 error: Database connection error: connect ECONNREFUSED 127.0.0.1:27017
+2025-07-16 03:28:03 info: 🚀 Server running in development mode on port 5000
+2025-07-16 03:28:33 error: Database connection error: connect ECONNREFUSED 127.0.0.1:27017
+2025-07-16 03:53:24 info: 🚀 Server running in development mode on port 5000
+2025-07-16 03:53:24 info: MongoDB Connected: 127.0.0.1
+2025-07-16 04:34:31 info: 🚀 Server running in development mode on port 5000
+2025-07-16 04:34:32 info: MongoDB Connected: 127.0.0.1
+2025-07-16 04:58:57 info: 🚀 Server running in development mode on port 5000
+2025-07-16 04:58:57 info: MongoDB Connected: 127.0.0.1
+2025-07-16 08:26:05 info: 🚀 Server running in development mode on port 5000
+2025-07-16 08:26:05 info: MongoDB Connected: 127.0.0.1
+2025-07-16 10:43:20 error: Unhandled Rejection: undefined
+2025-07-16 10:44:07 info: 🚀 Server running in development mode on port 5000
+2025-07-16 10:44:07 info: MongoDB Connected: 127.0.0.1
+2025-07-16 10:46:17 error: Unhandled Rejection: undefined
+2025-07-16 11:08:47 info: 🚀 Server running in development mode on port 5000
+2025-07-16 11:08:47 info: MongoDB Connected: 127.0.0.1
+2025-07-16 11:11:26 error: Unhandled Rejection: undefined
+2025-07-16 11:12:49 info: 🚀 Server running in development mode on port 5000
+2025-07-16 11:12:49 info: MongoDB Connected: 127.0.0.1
+2025-07-16 11:22:33 info: 🚀 Server running in development mode on port 5000
+2025-07-16 11:22:33 info: MongoDB Connected: 127.0.0.1
+2025-07-16 11:25:03 error: Unhandled Rejection: undefined
+2025-07-16 11:37:21 info: 🚀 Server running in development mode on port 5000
+2025-07-16 11:37:21 info: MongoDB Connected: 127.0.0.1

@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { useCart } from '../../context/CartContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const { cartCount } = useCart();
   const { t } = useTranslation();
   const { language, changeLanguage } = useLanguage();
+  const { cartCount } = useCart();
 
   return (
     <nav className="bg-white shadow-sm">

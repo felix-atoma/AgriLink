@@ -1,14 +1,39 @@
-// config/cloudinary.js
+// utils/cloudinary.js
 import { v2 as cloudinary } from 'cloudinary';
-import dotenv from 'dotenv';
+import fs from 'fs/promises';
 
-dotenv.config(); // Load environment variables
+const uploadToCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) return null;
+    
+    // Upload the file to Cloudinary
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      folder: 'products',
+      resource_type: 'auto'
+    });
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-});
+    // Delete the local file only if it exists
+    try {
+      await fs.unlink(localFilePath);
+    } catch (unlinkError) {
+      console.warn('Warning: Could not delete local file:', unlinkError.message);
+    }
 
-export default cloudinary;
+    return {
+      url: result.secure_url,
+      publicId: result.public_id
+    };
+  } catch (error) {
+    // Attempt to delete the local file if upload fails
+    if (localFilePath) {
+      try {
+        await fs.unlink(localFilePath);
+      } catch (unlinkError) {
+        console.error('Error deleting local file:', unlinkError.message);
+      }
+    }
+    throw error;
+  }
+};
+
+export { uploadToCloudinary };

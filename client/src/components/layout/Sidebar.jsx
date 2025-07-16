@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.jsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +8,7 @@ import {
   PlusCircleIcon,
   ChartBarIcon,
   ArrowLeftOnRectangleIcon,
-  MapPinIcon
+  MapPinIcon,
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
@@ -22,14 +21,13 @@ const Sidebar = () => {
     ? [
         { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/farmer' },
         { key: 'products.myProducts', icon: ShoppingBagIcon, to: '/dashboard/farmer/my-products' },
-        { key: 'products.editProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/edit-product/:id' },
-        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders-received' }
+        { key: 'products.addProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/add-product' },
+        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders-received' },
       ]
     : [
         { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/buyer' },
-        { key: 'products.OrderDetails', icon: ShoppingBagIcon, to: '/dashboard/buyer/order-details/:id' },
-        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/my-orders' },
-        { key: 'nearby.farms', icon: MapPinIcon, to: '/dashboard/buyer/nearby-farms' }
+        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/orders' },
+        { key: 'nearby.farms', icon: MapPinIcon, to: '/dashboard/buyer/nearby-farms' },
       ];
 
   return (
@@ -48,6 +46,7 @@ const Sidebar = () => {
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.to.endsWith('/farmer') || item.to.endsWith('/buyer')}
             className={({ isActive }) =>
               `flex items-center px-4 py-2 text-sm font-medium rounded-md transition ${
                 isActive
