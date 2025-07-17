@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
-import { useToast } from '../ui/Toast';
+import { useToast } from '../../utils/toast';
 import { ShoppingCartIcon } from '@heroicons/react/24/solid';
 
 const ProductCard = ({ product }) => {
   const { t } = useTranslation();
   const { addToCart } = useCart();
-  const { toast } = useToast();
+  const { success, error } = useToast(); // Destructure the specific methods you need
 
   const [selectedVariant, setSelectedVariant] = useState('');
   const [quantity, setQuantity] = useState(1);
 
   const handleAddToCart = () => {
     if (!product || !product._id) {
-      toast({ title: 'Invalid product', status: 'error' });
+      error('Invalid product');
       return;
     }
 
     if (quantity < 1) {
-      toast({ title: 'Quantity must be at least 1', status: 'error' });
+      error('Quantity must be at least 1');
       return;
     }
 
@@ -31,10 +31,7 @@ const ProductCard = ({ product }) => {
 
     addToCart(productToAdd, quantity);
 
-    toast({
-      title: t('cart.added') || 'Product added to cart',
-      status: 'success',
-    });
+    success(t('cart.added') || 'Product added to cart');
   };
 
   return (
@@ -76,7 +73,6 @@ const ProductCard = ({ product }) => {
             className="w-16 border rounded px-2 py-1"
           />
 
-          {/* Cart Icon Button */}
           <button
             onClick={handleAddToCart}
             className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full"

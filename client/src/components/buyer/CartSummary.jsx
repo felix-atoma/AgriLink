@@ -1,45 +1,53 @@
 import React from 'react';
-import { useCart } from '../../context/CartContext';
 import { useTranslation } from 'react-i18next';
-import Button from '../ui/Button';
 
-const CartSummary = ({ onCheckout, onClearCart }) => {
-  const { cartTotal, cartCount } = useCart();
+const CartSummary = ({ total, itemCount, onCheckout, isProcessing, onClearCart }) => {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-white shadow-md p-6 rounded-xl border border-gray-200">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">{t('cart.summary')}</h3>
-
-      <div className="space-y-4 text-gray-700">
+    <div className="bg-white p-6 rounded-lg shadow">
+      <h2 className="text-xl font-semibold mb-4">
+        {t('cart.summary') || 'Order Summary'}
+      </h2>
+      
+      <div className="space-y-4">
         <div className="flex justify-between">
-          <span>{t('cart.items')}</span>
-          <span className="font-medium">{cartCount}</span>
+          <span>{t('cart.items') || 'Items'}</span>
+          <span>{itemCount}</span>
         </div>
-        <div className="flex justify-between border-t pt-3">
-          <span className="font-semibold">{t('cart.subtotal')}</span>
-          <span className="font-bold text-green-600">${cartTotal.toFixed(2)}</span>
+        
+        <div className="flex justify-between font-semibold text-lg">
+          <span>{t('cart.total') || 'Total'}</span>
+          <span className="text-green-600">
+            {total.toLocaleString(undefined, {
+              style: 'currency',
+              currency: 'GHS'
+            })}
+          </span>
         </div>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <Button
-          onClick={onCheckout}
-          className="w-full"
-          disabled={cartCount === 0}
-        >
-          {t('cart.checkout')}
-        </Button>
-
-        {onClearCart && (
-          <Button
-            onClick={onClearCart}
-            variant="secondary"
-            className="w-full"
+        
+        <div className="pt-4 space-y-2">
+          <button
+            onClick={onCheckout}
+            disabled={isProcessing || itemCount === 0}
+            className={`w-full py-2 px-4 rounded-md text-white ${isProcessing || itemCount === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
           >
-            {t('cart.clear_cart')}
-          </Button>
-        )}
+            {isProcessing ? (
+              <span>{t('cart.processing') || 'Processing...'}</span>
+            ) : (
+              <span>{t('cart.checkout') || 'Proceed to Checkout'}</span>
+            )}
+          </button>
+          
+          {itemCount > 0 && (
+            <button
+              onClick={onClearCart}
+              className="w-full py-2 px-4 rounded-md text-red-600 border border-red-600 hover:bg-red-50"
+            >
+              {t('cart.clearCart') || 'Clear Cart'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

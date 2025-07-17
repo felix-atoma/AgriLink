@@ -1,6 +1,5 @@
 import apiClient from './apiClient';
 
-// Helper to extract errors
 const handleError = (error, fallbackMessage = 'Request failed') => {
   const res = error?.response;
   const message = res?.data?.message || error.message || fallbackMessage;
@@ -21,121 +20,121 @@ const handleError = (error, fallbackMessage = 'Request failed') => {
   };
 };
 
-// ✅ Create Order
+// Create a new order
 export const createOrder = async (orderData) => {
   try {
-    if (!orderData || !Array.isArray(orderData.products)) {
-      throw new Error('Invalid order data: products must be an array');
+    // Validate order data structure
+    if (!orderData || typeof orderData !== 'object') {
+      throw new Error('Invalid order data');
+    }
+
+    // Validate items array
+    if (!Array.isArray(orderData.items) || orderData.items.length === 0) {
+      throw new Error('Order must contain at least one item');
+    }
+
+    // Validate each item
+    const validatedItems = orderData.items.map((item, index) => {
+      if (!item?.productId) {
+        throw new Error(`Item ${index + 1} is missing product ID`);
+      }
+      const quantity = Number(item.quantity);
+      if (isNaN(quantity) || quantity < 1) {
+        throw new Error(`Invalid quantity for product ${item.productId}`);
+      }
+      return {
+        product: item.productId,
+        quantity,
+        price: item.price,
+        ...(item.variantId && { variantId: item.variantId })
+      };
+    });
+
+    // Validate shipping address
+    const requiredAddressFields = ['street', 'city', 'country'];
+    const missingFields = requiredAddressFields.filter(
+      field => !orderData.shippingAddress?.[field]
+    );
+    if (missingFields.length > 0) {
+      throw new Error(`Missing shipping fields: ${missingFields.join(', ')}`);
+    }
+
+    // Validate payment method
+    const validPaymentMethods = ['cash', 'card', 'mobile'];
+    if (!validPaymentMethods.includes(orderData.paymentMethod)) {
+      throw new Error(`Invalid payment method: ${orderData.paymentMethod}`);
     }
 
     const payload = {
-      products: orderData.products.map((item, i) => {
-        if (!item.product) throw new Error(`Missing product ID at index ${i}`);
-        const quantity = Number(item.quantity);
-        if (!quantity || quantity < 1) throw new Error(`Invalid quantity for product ${item.product}`);
-        return { product: item.product, quantity };
-      }),
-      shippingAddress: {
-        street: orderData.shippingAddress?.street || '',
-        city: orderData.shippingAddress?.city || '',
-        country: orderData.shippingAddress?.country || '',
-        ...(orderData.shippingAddress?.postalCode && {
-          postalCode: orderData.shippingAddress.postalCode,
-        }),
-      },
-      paymentMethod: orderData.paymentMethod || 'cash',
+      items: validatedItems,
+      shippingAddress: orderData.shippingAddress,
+      paymentMethod: orderData.paymentMethod,
+      totalAmount: orderData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     };
 
-    // Final shipping validation
-    const { street, city, country } = payload.shippingAddress;
-    if (!street || !city || !country) {
-      throw new Error('Complete shipping address is required');
-    }
-
-    console.log('[createOrder] Payload:', payload);
-    const res = await apiClient.post('/orders', payload);
-
+    const response = await apiClient.post('/orders', payload);
     return {
       success: true,
-      data: res.data?.data,
-      message: res.data?.message || 'Order created successfully',
+      data: response.data,
+      message: response.data?.message || 'Order created successfully'
     };
   } catch (error) {
-    return handleError(error, 'Order creation failed');
+    return handleError(error, 'Failed to create order');
   }
 };
 
-// ✅ Get My Orders
-export const getOrders = async (queryParams = {}) => {
+// Process payment for an order
+export const processPayment = async (paymentData) => {
   try {
-    const res = await apiClient.get('/orders/my-orders', { params: queryParams });
+    // Basic validation
+    if (!paymentData?.orderId || !paymentData?.amount || paymentData.amount <= 0) {
+      throw new Error('Invalid payment data');
+    }
 
+    // Method-specific validation
+    if (paymentData.method === 'card') {
+      if (!paymentData.cardNumber || !paymentData.expiry || !paymentData.cvv) {
+        throw new Error('Incomplete card details');
+      }
+      // Basic card validation
+      if (!/^\d{16}$/.test(paymentData.cardNumber.replace(/\s/g, ''))) {
+        throw new Error('Invalid card number');
+      }
+      if (!/^\d{3,4}$/.test(paymentData.cvv)) {
+        throw new Error('Invalid CVV');
+      }
+    } 
+    else if (paymentData.method === 'mobile') {
+      if (!paymentData.provider || !paymentData.phone) {
+        throw new Error('Incomplete mobile money details');
+      }
+      // Basic phone validation
+      if (!/^\d{10}$/.test(paymentData.phone)) {
+        throw new Error('Invalid phone number');
+      }
+    }
+
+    const response = await apiClient.post('/payments/process', paymentData);
     return {
       success: true,
-      orders: res.data?.data,
-      pagination: res.data?.pagination,
+      data: response.data,
+      message: response.data?.message || 'Payment processed successfully'
+    };
+  } catch (error) {
+    return handleError(error, 'Payment processing failed');
+  }
+};
+
+// Other order-related functions...
+export const getOrders = async () => {
+  try {
+    const response = await apiClient.get('/orders');
+    return {
+      success: true,
+      data: response.data,
+      message: response.data?.message || 'Orders fetched successfully'
     };
   } catch (error) {
     return handleError(error, 'Failed to fetch orders');
-  }
-};
-
-// ✅ Get Orders Received (for sellers)
-export const getReceivedOrders = async (queryParams = {}) => {
-  try {
-    const res = await apiClient.get('/orders/received', { params: queryParams });
-
-    return {
-      success: true,
-      orders: res.data?.data,
-      pagination: res.data?.pagination,
-    };
-  } catch (error) {
-    return handleError(error, 'Failed to fetch received orders');
-  }
-};
-
-// ✅ Get Order by ID
-export const getOrderDetails = async (id) => {
-  try {
-    const res = await apiClient.get(`/orders/${id}`);
-
-    return {
-      success: true,
-      order: res.data?.data,
-    };
-  } catch (error) {
-    return handleError(error, 'Failed to fetch order details');
-  }
-};
-
-// ✅ Update Order Status
-export const updateOrderStatus = async (id, statusData) => {
-  try {
-    const res = await apiClient.patch(`/orders/${id}/status`, statusData);
-
-    return {
-      success: true,
-      order: res.data?.data,
-      message: res.data?.message || 'Order status updated',
-    };
-  } catch (error) {
-    return handleError(error, 'Failed to update order status');
-  }
-};
-
-// ✅ Cancel Order
-export const cancelOrder = async (id, reason) => {
-  try {
-    const res = await apiClient.delete(`/orders/${id}`, {
-      data: { reason },
-    });
-
-    return {
-      success: true,
-      message: res.data?.message || 'Order cancelled successfully',
-    };
-  } catch (error) {
-    return handleError(error, 'Failed to cancel order');
   }
 };

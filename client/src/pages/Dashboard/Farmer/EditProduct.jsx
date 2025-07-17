@@ -1,280 +1,341 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Spinner from '../../../components/shared/Spinner';
-import apiClient from '../../../services/apiClient';
-import { useTranslation } from 'react-i18next';
-import { useToast } from '../../../components/ui/Toast';
-import { isValidObjectId } from '../../../utils/validators';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import apiClient from "../../../services/apiClient";
 
 const EditProduct = () => {
-  const { t } = useTranslation();
-  const { toast } = useToast();
   const { productId } = useParams();
   const navigate = useNavigate();
-
-  const [product, setProduct] = useState({
-    name: '',
-    price: '',
-    quantity: '',
-    description: '',
-    category: 'general',
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    quantity: "",
+    category: "",
+    lat: "",
+    lng: "",
+    images: [],
   });
-
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    let isMounted = true;
+  // Cloudinary configuration
+  const CLOUD_NAME = "dbjjbxazd";
+  const UPLOAD_PRESET = "ml_default";
 
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
-        if (!isMounted) return;
+        setLoading(true);
+        const response = await apiClient.get("/products/my-products");
 
-        // Validate product ID first
-        if (!productId || !isValidObjectId(productId)) {
-          throw new Error(t('errors.invalidProductId') || 'Invalid product ID');
-        }
-
-        const response = await apiClient.get(`/products/${productId}`);
-        
-        if (!isMounted) return;
-        
         if (!response.data) {
-          throw new Error(t('errors.productNotFound') || 'Product not found');
+          throw new Error("Product not found");
         }
 
-        setProduct({
-          name: response.data.name || '',
-          price: response.data.price?.toString() || '0',
-          quantity: response.data.quantity?.toString() || '0',
-          description: response.data.description || '',
-          category: response.data.category || 'general',
+        const product = response.data;
+        setFormData({
+          name: product.name || "",
+          description: product.description || "",
+          price: product.price?.toString() || "",
+          quantity: product.quantity?.toString() || "",
+          category: product.category || "",
+          lat: product.location?.coordinates?.[1]?.toString() || "",
+          lng: product.location?.coordinates?.[0]?.toString() || "",
+          images: product.images || [],
         });
 
-      } catch (err) {
-        if (!isMounted) return;
-        
-        console.error('Fetch error:', err);
-        setErrors({ fetch: err.message });
-        
-        // Delay toast to prevent potential loops
-        setTimeout(() => {
-          toast({
-            variant: "destructive",
-            title: t('errors.fetchFailed'),
-            description: err.response?.data?.message || err.message,
-          });
-        }, 100);
-        
-        navigate('/dashboard/farmer/my-products');
-      } finally {
-        if (isMounted) {
-          setLoading(false);
+        if (product.images?.[0]?.url) {
+          setImagePreview(product.images[0].url);
         }
+      } catch (err) {
+        console.error("Fetch product error:", err);
+        toast.error(
+          err.response?.data?.message || "Failed to load product data"
+        );
+        navigate("/dashboard/farmer/my-products");
+      } finally {
+        setLoading(false);
       }
     };
 
-    // Only fetch if we have a valid productId
-    if (productId && isValidObjectId(productId)) {
-      fetchProduct();
-    } else {
-      setLoading(false);
-      setErrors({ fetch: t('errors.invalidProductId') || 'Invalid product ID' });
-      navigate('/dashboard/farmer/my-products');
-    }
+    fetchProduct();
+  }, [productId, navigate]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [productId, navigate, t]);
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
+    if (!formData.price) newErrors.price = "Price is required";
+    if (Number(formData.price) <= 0)
+      newErrors.price = "Price must be greater than 0";
+    if (!formData.quantity) newErrors.quantity = "Quantity is required";
+    if (Number(formData.quantity) < 0)
+      newErrors.quantity = "Quantity cannot be negative";
+    if (!formData.category.trim()) newErrors.category = "Category is required";
+    if (!formData.lat) newErrors.lat = "Latitude is required";
+    if (!formData.lng) newErrors.lng = "Longitude is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      toast.error("Only JPEG, PNG, and WebP images are allowed");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+    setUploadingImage(true);
+
+    try {
+      const formDataImage = new FormData();
+      formDataImage.append("file", file);
+      formDataImage.append("upload_preset", UPLOAD_PRESET);
+      formDataImage.append("cloud_name", CLOUD_NAME);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formDataImage,
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || "Cloudinary upload failed");
+      }
+
+      const data = await res.json();
+
+      setFormData((prev) => ({
+        ...prev,
+        images: [
+          {
+            url: data.secure_url,
+            publicId: data.public_id,
+          },
+        ],
+      }));
+    } catch (err) {
+      console.error("Image upload error:", err);
+      toast.error(`Image upload failed: ${err.message}`);
+      setSelectedImage(null);
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
-    setErrors({});
+    if (!validateForm()) {
+      toast.error("Please fix the form errors");
+      return;
+    }
 
+    setLoading(true);
     try {
-      // Validate all required fields
-      const requiredFields = ['name', 'description', 'price', 'quantity'];
-      const missingFields = requiredFields.filter(field => !product[field]);
-      
-      if (missingFields.length > 0) {
-        throw new Error(t('errors.missingFields') || 'Please fill all required fields');
-      }
-
-      // Convert to proper types
       const payload = {
-        name: product.name,
-        description: product.description,
-        price: parseFloat(product.price),
-        quantity: parseInt(product.quantity),
-        category: product.category,
+        ...formData,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+        lat: parseFloat(formData.lat),
+        lng: parseFloat(formData.lng),
       };
 
-      // Make the API call
-      await apiClient.put(`/products/${productId}`, payload);
-      
-      // Show success message
-      toast({
-        title: t('product.updateSuccess'),
-        description: t('product.updatedSuccessfully'),
-      });
-      
-      // Redirect after successful update
-      navigate('/dashboard/farmer/my-products');
-
+      const response = await apiClient.put(
+        `/products/${productId}`, 
+        payload
+      );
+      toast.success("Product updated successfully!");
+      navigate("/dashboard/farmer/my-products");
     } catch (err) {
-      console.error('Update error:', err);
-      
-      // Handle validation errors from server
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      }
-      
-      // Show error message
-      toast({
-        variant: "destructive",
-        title: t('errors.updateFailed'),
-        description: err.response?.data?.message || err.message,
-      });
+      console.error("Update product error:", err);
+      toast.error(err.response?.data?.message || "Failed to update product");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (loading) return <Spinner />;
-
-  if (errors.fetch) {
+  if (loading && !formData.name) {
     return (
-      <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
-        <h2 className="text-xl text-red-600 mb-4">{errors.fetch}</h2>
-        <button
-          onClick={() => navigate('/dashboard/farmer/my-products')}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          {t('common.backToProducts')}
-        </button>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">
-        {t('common.edit')} {product.name}
-      </h2>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg space-y-6"
+    >
+      <h2 className="text-3xl font-semibold text-gray-800">Edit Product</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Name Field */}
-        <div>
-          <label className="block mb-1 font-medium">{t('product.name')}</label>
-          <input
-            type="text"
-            name="name"
-            value={product.name}
-            onChange={handleChange}
-            className={`w-full border px-3 py-2 rounded ${errors.name ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+      {[
+        ["name", "Product Name*", "text"],
+        ["description", "Description*", "textarea"],
+        ["category", "Category*", "text"],
+      ].map(([key, label, type]) => (
+        <div key={key}>
+          <label htmlFor={key} className="block font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+          {type === "textarea" ? (
+            <textarea
+              id={key}
+              name={key}
+              value={formData[key]}
+              onChange={handleChange}
+              rows={3}
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          ) : (
+            <input
+              id={key}
+              name={key}
+              type={type}
+              value={formData[key]}
+              onChange={handleChange}
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          )}
+          {errors[key] && (
+            <p className="text-red-600 text-sm mt-1">{errors[key]}</p>
+          )}
         </div>
+      ))}
 
-        {/* Price Field */}
-        <div>
-          <label className="block mb-1 font-medium">{t('product.price')}</label>
-          <input
-            type="number"
-            name="price"
-            value={product.price}
-            onChange={handleChange}
-            step="0.01"
-            min="0"
-            className={`w-full border px-3 py-2 rounded ${errors.price ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
-        </div>
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          ["price", "Price*", "number", "0.01"],
+          ["quantity", "Quantity*", "number", "1"],
+        ].map(([key, label, type, step]) => (
+          <div key={key}>
+            <label className="block font-medium text-gray-700 mb-1">
+              {label}
+            </label>
+            <input
+              name={key}
+              type={type}
+              step={step}
+              min="0"
+              value={formData[key]}
+              onChange={handleChange}
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {errors[key] && (
+              <p className="text-red-600 text-sm mt-1">{errors[key]}</p>
+            )}
+          </div>
+        ))}
+      </div>
 
-        {/* Quantity Field */}
-        <div>
-          <label className="block mb-1 font-medium">{t('product.quantity')}</label>
-          <input
-            type="number"
-            name="quantity"
-            value={product.quantity}
-            onChange={handleChange}
-            min="0"
-            className={`w-full border px-3 py-2 rounded ${errors.quantity ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
-        </div>
+      <div className="grid grid-cols-2 gap-4">
+        {[
+          ["lat", "Latitude*", "number", "any"],
+          ["lng", "Longitude*", "number", "any"],
+        ].map(([key, label, type, step]) => (
+          <div key={key}>
+            <label className="block font-medium text-gray-700 mb-1">
+              {label}
+            </label>
+            <input
+              name={key}
+              type={type}
+              step={step}
+              value={formData[key]}
+              onChange={handleChange}
+              className="w-full p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {errors[key] && (
+              <p className="text-red-600 text-sm mt-1">{errors[key]}</p>
+            )}
+          </div>
+        ))}
+      </div>
 
-        {/* Description Field */}
-        <div>
-          <label className="block mb-1 font-medium">{t('product.description')}</label>
-          <textarea
-            name="description"
-            value={product.description}
-            onChange={handleChange}
-            rows="4"
-            className={`w-full border px-3 py-2 rounded ${errors.description ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-        </div>
+      <div>
+        <label className="block font-medium text-gray-700 mb-1">
+          Product Image
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          disabled={uploadingImage}
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0 file:text-sm file:font-semibold
+            file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200
+            disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+        {uploadingImage && (
+          <p className="text-sm text-gray-500 mt-1">Uploading image...</p>
+        )}
+        {imagePreview && (
+          <div className="mt-3">
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="w-full max-h-60 object-contain rounded-md border"
+            />
+            {selectedImage && (
+              <p className="text-sm text-gray-500 mt-1">{selectedImage.name}</p>
+            )}
+          </div>
+        )}
+      </div>
 
-        {/* Category Field */}
-        <div>
-          <label className="block mb-1 font-medium">{t('product.category')}</label>
-          <select
-            name="category"
-            value={product.category}
-            onChange={handleChange}
-            className={`w-full border px-3 py-2 rounded ${errors.category ? 'border-red-500' : ''}`}
-          >
-            <option value="vegetables">Vegetables</option>
-            <option value="fruits">Fruits</option>
-            <option value="dairy">Dairy</option>
-            <option value="meat">Meat</option>
-            <option value="grains">Grains</option>
-          </select>
-          {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
-        </div>
-
-        {/* Form Actions */}
-        <div className="flex space-x-4 pt-4">
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard/farmer/my-products')}
-            className="flex-1 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            disabled={submitting}
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`flex-1 py-2 rounded text-white ${submitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-          >
-            {submitting ? t('common.saving') + '...' : t('common.save')}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div className="flex space-x-4">
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard/farmer/my-products")}
+          className="flex-1 py-3 bg-gray-300 text-gray-800 rounded-md font-semibold hover:bg-gray-400 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading || uploadingImage}
+          className={`flex-1 py-3 text-white rounded-md font-semibold transition-colors ${
+            loading || uploadingImage
+              ? "bg-indigo-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
+        >
+          {loading
+            ? "Updating..."
+            : uploadingImage
+            ? "Uploading Image..."
+            : "Update Product"}
+        </button>
+      </div>
+    </form>
   );
 };
 

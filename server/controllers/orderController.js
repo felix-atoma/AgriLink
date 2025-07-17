@@ -68,7 +68,7 @@ export const createOrder = async (req, res) => {
         image: product.image || '',
         quantity: item.quantity,
         price: product.price,
-        farmer: product.user || product.farmer // Ensure your schema has this
+        farmer: product.farmer || product.user // ensure farmer/user is saved
       });
     }
 
@@ -86,12 +86,17 @@ export const createOrder = async (req, res) => {
       .populate('products.product', 'name price image')
       .populate('buyer', 'name email');
 
-    return successResponse(res, populatedOrder, 201, 'Order created successfully');
+    return res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      order: populatedOrder
+    });
   } catch (error) {
     console.error('Order creation error:', error);
     return errorResponse(res, 'Failed to create order', 500);
   }
 };
+
 
 // GET MY ORDERS (Buyer)
 export const getOrders = async (req, res) => {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { toast } from '../../../components/ui/Toast'
-import AddProductForm from '../../../components/farmer/AddProductForm'
-import apiClient from '../../../services/apiClient'
+import { toast } from '../../../utils/toast'; // Using named import
+import AddProductForm from '../../../components/farmer/AddProductForm';
+import apiClient from '../../../services/apiClient';
 import handleApiError from '../../../utils/handleApiError';
 
 const AddProduct = () => {
