@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
-import apiClient from '../services/apiClient';
+import apiClient from '../services/apiClient'
 import { toast } from "react-toastify";
 
 const CartContext = createContext();
@@ -109,55 +109,28 @@ export const CartProvider = ({ children }) => {
 
   // Create new order
   const createOrder = async (orderData) => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    const transformedProducts = cart.map(item => ({
+      product: item.product._id,
+      quantity: item.quantity
+    }));
 
-      // Validate required fields
-      if (!orderData?.products || !Array.isArray(orderData.products)) {
-        throw new Error("Products must be provided as an array");
-      }
+    const finalPayload = {
+      products: transformedProducts,
+      shippingAddress: orderData.shippingAddress,
+      paymentMethod: orderData.paymentMethod
+    };
 
-      if (orderData.products.length === 0) {
-        throw new Error("Order must contain at least one item");
-      }
+    const response = await apiClient.post('/orders', finalPayload);
 
-      if (!orderData.shippingAddress?.street || 
-          !orderData.shippingAddress?.city || 
-          !orderData.shippingAddress?.country) {
-        throw new Error("Complete shipping address is required");
-      }
+    console.log("✅ Order created:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Order creation failed:", error);
+    throw error;
+  }
+};
 
-      if (!orderData.paymentMethod) {
-        throw new Error("Payment method is required");
-      }
-
-      // Make API request
-      const response = await apiClient.post('/orders', orderData);
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || "Order creation failed");
-      }
-
-      return {
-        success: true,
-        data: response.data.order,
-        message: response.data.message || "Order created successfully"
-      };
-    } catch (error) {
-      console.error("Order creation failed:", error);
-      const errorMessage = error.response?.data?.message || error.message;
-      setError(errorMessage);
-      toast.error(errorMessage);
-
-      return {
-        success: false,
-        message: errorMessage,
-      };
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Process payment
   const processPayment = async (paymentData) => {
