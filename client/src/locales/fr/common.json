@@ -18,9 +18,45 @@
   "viewAll": "Voir tout",
   "search": "Rechercher",
   "noResults": "Aucun résultat trouvé",
-  "requiredField": "Ce champ est requis",
+  "requiredField": "Ce champ est obligatoire",
   "allRightsReserved": "Tous droits réservés",
   "terms": "Conditions d'utilisation",
   "privacy": "Politique de confidentialité",
-  "contact": "Contact"
+  "contact": "Contact",
+  "farmer": "Agriculteur",
+  "buyer": "Acheteur",
+  "myProducts": "Mes Produits",
+  "addProduct": "Ajouter un Produit",
+  "ordersReceived": "Commandes Reçues",
+  "myOrders": "Mes Commandes",
+  "nearbyFarms": "Fermes à Proximité",
+  "address": {
+    "street": "Adresse",
+    "city": "Ville",
+    "country": "Pays",
+    "postalCode": "Code postal",
+    "selectCountry": "Sélectionner un pays",
+    "errors": {
+      "required": "Ce champ est obligatoire",
+      "invalid": "Valeur invalide",
+      "countryRequired": "Veuillez sélectionner un pays"
+    }
+  },
+  "countries": {
+    "Ghana": "Ghana",
+    "Nigeria": "Nigéria",
+    "South_Africa": "Afrique du Sud",
+    "Kenya": "Kenya",
+    "Ethiopia": "Éthiopie",
+    "Egypt": "Égypte",
+    "Tanzania": "Tanzanie",
+    "Uganda": "Ouganda",
+    "Algeria": "Algérie",
+    "Morocco": "Maroc",
+    "Angola": "Angola",
+    "Cameroon": "Cameroun",
+    "Côte_d'Ivoire": "Côte d'Ivoire",
+    "Senegal": "Sénégal",
+    "Tunisia": "Tunisie"
+  }
 }

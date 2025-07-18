@@ -19,25 +19,25 @@ const Sidebar = () => {
 
   const navItems = user.role === 'farmer'
     ? [
-        { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/farmer' },
-        { key: 'products.myProducts', icon: ShoppingBagIcon, to: '/dashboard/farmer/my-products' },
-        { key: 'products.addProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/add-product' },
-        { key: 'orders.received', icon: ChartBarIcon, to: '/dashboard/farmer/orders-received' },
+        { key: 'dashboard', icon: HomeIcon, to: '/dashboard/farmer' },
+        { key: 'myProducts', icon: ShoppingBagIcon, to: '/dashboard/farmer/my-products' },
+        { key: 'addProduct', icon: PlusCircleIcon, to: '/dashboard/farmer/add-product' },
+        { key: 'ordersReceived', icon: ChartBarIcon, to: '/dashboard/farmer/orders-received' },
       ]
     : [
-        { key: 'common.dashboard', icon: HomeIcon, to: '/dashboard/buyer' },
-        { key: 'orders.myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/orders' },
-        { key: 'nearby.farms', icon: MapPinIcon, to: '/dashboard/buyer/nearby-farms' },
+        { key: 'dashboard', icon: HomeIcon, to: '/dashboard/buyer' },
+        { key: 'myOrders', icon: ChartBarIcon, to: '/dashboard/buyer/orders' },
+        { key: 'nearbyFarms', icon: MapPinIcon, to: '/dashboard/buyer/nearby-farms' },
       ];
 
   return (
-    <aside className="w-64 bg-white shadow-md h-screen fixed top-0 left-0 z-20 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-primary-600">
-          {t('common.appName')}
+    <aside className="w-64 bg-gradient-to-b from-amber-300 to-green-200 shadow-md h-screen fixed top-0 left-0 z-20 flex flex-col">
+      <div className="p-4 border-b border-gray-200 bg-white bg-opacity-30">
+        <h1 className="text-xl font-bold text-gray-800">
+          {t('appName')}
         </h1>
-        <p className="text-xs text-gray-500">
-          {user.role === 'farmer' ? t('auth.farmer') : t('auth.buyer')}
+        <p className="text-xs text-gray-700">
+          {user.role === 'farmer' ? t('farmer') : t('buyer')}
         </p>
       </div>
 
@@ -50,8 +50,8 @@ const Sidebar = () => {
             className={({ isActive }) =>
               `flex items-center px-4 py-2 text-sm font-medium rounded-md transition ${
                 isActive
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-white bg-opacity-50 text-gray-900 shadow-sm'
+                  : 'text-gray-700 hover:bg-white hover:bg-opacity-30 hover:text-gray-900'
               }`
             }
           >
@@ -61,13 +61,13 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 bg-white bg-opacity-30">
         <button
           onClick={logout}
-          className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-red-600 rounded-md"
+          className="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-white hover:bg-opacity-50 hover:text-red-600 rounded-md transition"
         >
           <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-3" />
-          {t('common.logout')}
+          {t('logout')}
         </button>
       </div>
     </aside>

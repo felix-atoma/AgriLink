@@ -1,6 +1,6 @@
 {
   "appName": "AgriLink",
-  "dashboard": "Tablero",
+  "dashboard": "Panel",
   "login": "Iniciar sesión",
   "register": "Registrarse",
   "logout": "Cerrar sesión",
@@ -20,7 +20,43 @@
   "noResults": "No se encontraron resultados",
   "requiredField": "Este campo es obligatorio",
   "allRightsReserved": "Todos los derechos reservados",
-  "terms": "Términos del servicio",
+  "terms": "Términos de servicio",
   "privacy": "Política de privacidad",
-  "contact": "Contacto"
+  "contact": "Contacto",
+  "farmer": "Agricultor",
+  "buyer": "Comprador",
+  "myProducts": "Mis Productos",
+  "addProduct": "Agregar Producto",
+  "ordersReceived": "Pedidos Recibidos",
+  "myOrders": "Mis Pedidos",
+  "nearbyFarms": "Granjas Cercanas",
+  "address": {
+    "street": "Dirección",
+    "city": "Ciudad",
+    "country": "País",
+    "postalCode": "Código postal",
+    "selectCountry": "Seleccionar país",
+    "errors": {
+      "required": "Este campo es obligatorio",
+      "invalid": "Valor inválido",
+      "countryRequired": "Por favor seleccione un país"
+    }
+  },
+  "countries": {
+    "Ghana": "Ghana",
+    "Nigeria": "Nigeria",
+    "South_Africa": "Sudáfrica",
+    "Kenya": "Kenia",
+    "Ethiopia": "Etiopía",
+    "Egypt": "Egipto",
+    "Tanzania": "Tanzania",
+    "Uganda": "Uganda",
+    "Algeria": "Argelia",
+    "Morocco": "Marruecos",
+    "Angola": "Angola",
+    "Cameroon": "Camerún",
+    "Côte_d'Ivoire": "Costa de Marfil",
+    "Senegal": "Senegal",
+    "Tunisia": "Túnez"
+  }
 }
