@@ -13,6 +13,7 @@ import logger from './utils/logger.js';
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js'; // ✅ NEW
 
 // Middleware
 import { notFound, errorHandler } from './middleware/errorHandler.js';
@@ -58,6 +59,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/payment', paymentRoutes); // ✅ Add this
 
 // Health check
 app.get('/api/v1/health', (req, res) => {

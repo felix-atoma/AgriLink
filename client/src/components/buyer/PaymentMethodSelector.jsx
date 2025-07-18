@@ -24,7 +24,7 @@ const PaymentMethodSelector = ({
             onChange={() => onMethodChange('cash')}
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label htmlFor="payment-cash" className="ml-3 block text-sm font-medium text-gray-700">
+          <label htmlFor="payment-cash" className="ml-3 text-sm font-medium text-gray-700">
             {t('payment.cash') || 'Cash on Delivery'}
           </label>
         </div>
@@ -32,14 +32,14 @@ const PaymentMethodSelector = ({
         {/* Credit/Debit Card */}
         <div className="flex items-center">
           <input
-            id="payment-card"
+            id="payment-credit_card"
             name="paymentMethod"
             type="radio"
-            checked={method === 'card'}
-            onChange={() => onMethodChange('card')}
+            checked={method === 'credit_card'}
+            onChange={() => onMethodChange('credit_card')}
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label htmlFor="payment-card" className="ml-3 block text-sm font-medium text-gray-700">
+          <label htmlFor="payment-credit_card" className="ml-3 text-sm font-medium text-gray-700">
             {t('payment.card') || 'Credit/Debit Card'}
           </label>
         </div>
@@ -47,21 +47,21 @@ const PaymentMethodSelector = ({
         {/* Mobile Money */}
         <div className="flex items-center">
           <input
-            id="payment-mobile"
+            id="payment-mobile_money"
             name="paymentMethod"
             type="radio"
-            checked={method === 'mobile'}
-            onChange={() => onMethodChange('mobile')}
+            checked={method === 'mobile_money'}
+            onChange={() => onMethodChange('mobile_money')}
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
           />
-          <label htmlFor="payment-mobile" className="ml-3 block text-sm font-medium text-gray-700">
+          <label htmlFor="payment-mobile_money" className="ml-3 text-sm font-medium text-gray-700">
             {t('payment.mobile') || 'Mobile Money'}
           </label>
         </div>
       </div>
 
-      {/* Card Details Form */}
-      {method === 'card' && (
+      {/* Card Details */}
+      {method === 'credit_card' && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -73,7 +73,7 @@ const PaymentMethodSelector = ({
               value={cardDetails.cardNumber}
               onChange={onCardChange}
               placeholder="1234 5678 9012 3456"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -87,7 +87,7 @@ const PaymentMethodSelector = ({
                 value={cardDetails.expiry}
                 onChange={onCardChange}
                 placeholder="MM/YY"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none"
               />
             </div>
             <div>
@@ -100,15 +100,15 @@ const PaymentMethodSelector = ({
                 value={cardDetails.cvv}
                 onChange={onCardChange}
                 placeholder="123"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none"
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* Mobile Money Details Form */}
-      {method === 'mobile' && (
+      {/* Mobile Money Details */}
+      {method === 'mobile_money' && (
         <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -118,7 +118,7 @@ const PaymentMethodSelector = ({
               name="provider"
               value={mobileDetails.provider}
               onChange={onMobileChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none"
             >
               <option value="">{t('payment.selectProvider') || 'Select Provider'}</option>
               <option value="mtn">MTN Mobile Money</option>
@@ -136,7 +136,7 @@ const PaymentMethodSelector = ({
               value={mobileDetails.phone}
               onChange={onMobileChange}
               placeholder="0551234567"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none"
             />
           </div>
         </div>

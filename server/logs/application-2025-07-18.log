@@ -1,0 +1,30 @@
+2025-07-18 01:40:56 info: 🚀 Server running in development mode on port 5000
+2025-07-18 01:40:56 info: MongoDB Connected: 127.0.0.1
+2025-07-18 07:57:00 info: 🚀 Server running in development mode on port 5000
+2025-07-18 07:57:00 info: MongoDB Connected: 127.0.0.1
+2025-07-18 08:15:54 info: 🚀 Server running in development mode on port 5000
+2025-07-18 08:15:54 info: MongoDB Connected: 127.0.0.1
+2025-07-18 09:01:26 error: Database connection error: Invalid scheme, expected connection string to start with "mongodb://" or "mongodb+srv://"
+2025-07-18 09:04:01 info: 🚀 Server running in development mode on port 5000
+2025-07-18 09:04:04 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-00.2sypiml.mongodb.net
+2025-07-18 09:20:13 info: 🚀 Server running in development mode on port 5000
+2025-07-18 09:20:15 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net
+2025-07-18 09:20:26 info: 🚀 Server running in development mode on port 5000
+2025-07-18 09:20:34 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-00.2sypiml.mongodb.net
+2025-07-18 09:21:30 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-00.2sypiml.mongodb.net
+2025-07-18 09:24:45 info: 🚀 Server running in development mode on port 5000
+2025-07-18 09:24:47 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-00.2sypiml.mongodb.net
+2025-07-18 10:43:00 info: 🚀 Server running in development mode on port 5000
+2025-07-18 10:43:02 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-02.2sypiml.mongodb.net
+2025-07-18 10:43:34 info: 🚀 Server running in development mode on port 5000
+2025-07-18 10:43:36 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net
+2025-07-18 10:43:45 info: 🚀 Server running in development mode on port 5000
+2025-07-18 10:43:48 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net
+2025-07-18 10:45:56 info: 🚀 Server running in development mode on port 5000
+2025-07-18 10:45:58 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-02.2sypiml.mongodb.net
+2025-07-18 10:52:08 info: 🚀 Server running in development mode on port 5000
+2025-07-18 10:52:10 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-02.2sypiml.mongodb.net
+2025-07-18 11:45:54 info: 🚀 Server running in development mode on port 5000
+2025-07-18 11:46:00 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-00.2sypiml.mongodb.net
+2025-07-18 11:47:02 info: 🚀 Server running in development mode on port 5000
+2025-07-18 11:47:08 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net

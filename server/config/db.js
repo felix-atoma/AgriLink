@@ -7,7 +7,8 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    logger.info(`MongoDB Connected: ${conn.connection.host}`);
+
+    logger.info(`MongoDB Atlas Connected: ${conn.connection.host}`);
   } catch (error) {
     logger.error(`Database connection error: ${error.message}`);
     process.exit(1);

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import useLocalStorage from "../hooks/useLocalStorage";
-import apiClient from '../services/apiClient'
+import apiClient from '../services/apiClient';
 import { toast } from "react-toastify";
 
 const CartContext = createContext();
@@ -12,7 +12,6 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Sync cart with localStorage
   useEffect(() => {
     try {
       setStoredCart(cart);
@@ -21,14 +20,13 @@ export const CartProvider = ({ children }) => {
     }
   }, [cart, setStoredCart]);
 
-  // Calculate cart totals
   const cartTotal = cart.reduce(
     (total, item) => total + (item.product.price * item.quantity),
     0
   );
+
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  // Add item to cart with proper variant handling
   const addToCart = (product, quantity = 1, variantId = null) => {
     if (!product?._id) {
       toast.error("Invalid product");
@@ -40,7 +38,6 @@ export const CartProvider = ({ children }) => {
         (item) => item.product._id === product._id && item.variantId === variantId
       );
 
-      // Update existing item
       if (existingIndex >= 0) {
         const updatedCart = [...prevCart];
         updatedCart[existingIndex] = {
@@ -51,7 +48,6 @@ export const CartProvider = ({ children }) => {
         return updatedCart;
       }
 
-      // Add new item
       toast.success("Item added to cart");
       return [
         ...prevCart,
@@ -65,7 +61,6 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  // Remove item from cart completely
   const removeFromCart = (productId, variantId = null) => {
     setCart((prevCart) => {
       const newCart = prevCart.filter((item) => {
@@ -79,7 +74,6 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  // Update quantity with validation
   const updateQuantity = (productId, newQuantity, variantId = null) => {
     const quantity = Number(newQuantity);
     if (isNaN(quantity)) {
@@ -101,38 +95,48 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Clear entire cart
   const clearCart = () => {
     setCart([]);
     toast.success("Cart cleared");
   };
 
-  // Create new order
+  // ✅ FIXED createOrder
   const createOrder = async (orderData) => {
-  try {
-    const transformedProducts = cart.map(item => ({
-      product: item.product._id,
-      quantity: item.quantity
-    }));
+    try {
+      const transformedProducts = cart.map(item => {
+        const quantity = Number(item.quantity);
 
-    const finalPayload = {
-      products: transformedProducts,
-      shippingAddress: orderData.shippingAddress,
-      paymentMethod: orderData.paymentMethod
-    };
+        if (isNaN(quantity) || quantity <= 0) {
+          throw new Error(`Invalid quantity for product: ${item.product?.name || 'unknown'}`);
+        }
 
-    const response = await apiClient.post('/orders', finalPayload);
+        return {
+          product: item.product._id,
+          quantity,
+        };
+      });
 
-    console.log("✅ Order created:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Order creation failed:", error);
-    throw error;
-  }
-};
+      const finalPayload = {
+        products: transformedProducts,
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod
+      };
 
+      console.log("📦 Order payload being sent:", finalPayload);
 
-  // Process payment
+      const response = await apiClient.post('/orders', finalPayload);
+
+      console.log("✅ Order created:", response.data);
+      toast.success("Order created successfully");
+      clearCart();
+      return response.data;
+    } catch (error) {
+      console.error("❌ Order creation failed:", error);
+      toast.error(error.response?.data?.message || error.message || "Order creation failed");
+      throw error;
+    }
+  };
+
   const processPayment = async (paymentData) => {
     try {
       setLoading(true);
@@ -168,7 +172,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Fetch user's orders
   const fetchOrders = async (queryParams = {}) => {
     try {
       setLoading(true);
@@ -198,24 +201,17 @@ export const CartProvider = ({ children }) => {
   return (
     <CartContext.Provider
       value={{
-        // Cart state
         cart,
         cartTotal,
         cartCount,
         loading,
         error,
-        
-        // Cart actions
         addToCart,
         removeFromCart,
         updateQuantity,
         clearCart,
-        
-        // Order actions
         createOrder,
         processPayment,
-        
-        // Orders state
         orders,
         fetchOrders
       }}
