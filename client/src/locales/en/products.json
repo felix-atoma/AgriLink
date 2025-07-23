@@ -22,5 +22,30 @@
     "dairy": "Dairy",
     "meat": "Meat",
     "other": "Other"
+  },
+  "addProductForm": {
+    "title": "Add New Product",
+    "productName": "Product Name",
+    "productDescription": "Description",
+    "productCategory": "Category",
+    "productPrice": "Price",
+    "productQuantity": "Quantity",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "productImage": "Product Image",
+    "uploadingImage": "Uploading image...",
+    "createProduct": "Create Product",
+    "creatingProduct": "Creating Product...",
+    "requiredField": "is required",
+    "priceValidation": "Price must be greater than 0",
+    "quantityValidation": "Quantity cannot be negative",
+    "imageValidation": "Only JPEG, PNG, and WebP images are allowed",
+    "sizeValidation": "Image size must be less than 5MB"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidPrice": "Price must be greater than 0",
+    "invalidQuantity": "Quantity cannot be negative",
+    "invalidCoordinates": "Please enter valid coordinates"
   }
 }

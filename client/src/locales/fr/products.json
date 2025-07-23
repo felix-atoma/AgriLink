@@ -1,6 +1,6 @@
 {
-  "discover": "Découvrir des produits frais",
-  "myProducts": "Mes produits",
+  "discover": "Découvrez des produits frais",
+  "myProducts": "Mes Produits",
   "addProduct": "Ajouter un produit",
   "editProduct": "Modifier le produit",
   "productDetails": "Détails du produit",
@@ -21,6 +21,31 @@
     "grains": "Céréales",
     "dairy": "Produits laitiers",
     "meat": "Viande",
-    "other": "Autres"
+    "other": "Autre"
+  },
+  "addProductForm": {
+    "title": "Ajouter un nouveau produit",
+    "productName": "Nom du produit",
+    "productDescription": "Description",
+    "productCategory": "Catégorie",
+    "productPrice": "Prix",
+    "productQuantity": "Quantité",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "productImage": "Image du produit",
+    "uploadingImage": "Téléversement de l’image...",
+    "createProduct": "Créer le produit",
+    "creatingProduct": "Création du produit...",
+    "requiredField": "est requis",
+    "priceValidation": "Le prix doit être supérieur à 0",
+    "quantityValidation": "La quantité ne peut pas être négative",
+    "imageValidation": "Seules les images JPEG, PNG et WebP sont autorisées",
+    "sizeValidation": "La taille de l'image doit être inférieure à 5 Mo"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "invalidPrice": "Le prix doit être supérieur à 0",
+    "invalidQuantity": "La quantité ne peut pas être négative",
+    "invalidCoordinates": "Veuillez entrer des coordonnées valides"
   }
 }

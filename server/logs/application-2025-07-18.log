@@ -32,3 +32,9 @@
 2025-07-18 13:54:14 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-02.2sypiml.mongodb.net
 2025-07-18 15:07:37 info: 🚀 Server running in development mode on port 5000
 2025-07-18 15:07:41 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net
+2025-07-18 17:45:43 info: 🚀 Server running in development mode on port 5000
+2025-07-18 17:46:13 error: Database connection error: Could not connect to any servers in your MongoDB Atlas cluster. One common reason is that you're trying to access the database from an IP that isn't whitelisted. Make sure your current IP address is on your Atlas cluster's IP whitelist: https://www.mongodb.com/docs/atlas/security-whitelist/
+2025-07-18 17:54:02 info: 🚀 Server running in development mode on port 5000
+2025-07-18 17:54:16 error: Database connection error: querySrv ECONNREFUSED _mongodb._tcp.cluster0.2sypiml.mongodb.net
+2025-07-18 18:00:19 info: 🚀 Server running in development mode on port 5000
+2025-07-18 18:00:21 info: MongoDB Atlas Connected: ac-8hemnef-shard-00-01.2sypiml.mongodb.net
