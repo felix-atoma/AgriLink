@@ -1,14 +1,16 @@
-# Global ignores
+# Node dependencies
+node_modules/
+
+# Environment variables
 .env
 .env.local
 
-# Client
-/client/node_modules
-/client/dist
-/client/.next
-/client/.vercel
+# Build output
+dist/
+build/
+.next/
+.vercel/
 
-# Server
-/server/node_modules
-/server/dist
-/server/.vercel
+# System files
+.DS_Store
+Thumbs.db
