@@ -53,6 +53,13 @@ try {
   }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  
+  // Security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    next();
+  });
   console.log('🧩 Core middleware mounted');
 
   // HTTP Logging
@@ -109,13 +116,49 @@ try {
     }
   }
 
+  // Root endpoint
+  app.get('/', (req, res) => {
+    res.json({
+      message: 'Welcome to AgriLink API',
+      version: '1.0.0',
+      status: 'operational',
+      documentation: `${req.protocol}://${req.get('host')}/docs`,
+      healthCheck: `${req.protocol}://${req.get('host')}/api/v1/health`,
+      availableRoutes: routeConfigs.map(([name, path]) => ({
+        path,
+        description: name
+      }))
+    });
+  });
+
+  // Documentation endpoint
+  app.get('/docs', (req, res) => {
+    res.json({
+      apiVersion: '1.0.0',
+      endpoints: [
+        {
+          path: '/api/v1/auth',
+          methods: ['POST', 'GET'],
+          description: 'User authentication'
+        },
+        {
+          path: '/api/v1/products',
+          methods: ['GET', 'POST', 'PUT', 'DELETE'],
+          description: 'Product management'
+        }
+        // Add more endpoint documentation as needed
+      ]
+    });
+  });
+
   // Health Check Endpoint
   app.get('/api/v1/health', (req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      language: req.language || 'en'
+      language: req.language || 'en',
+      uptime: process.uptime()
     });
   });
 
@@ -128,7 +171,11 @@ try {
   } catch (err) {
     console.error('❌ Error handler loading failed:', err.message);
     app.use((err, req, res, next) => {
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ 
+        error: 'Internal Server Error',
+        message: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
     });
   }
 
@@ -141,7 +188,7 @@ try {
     console.log('----------------------------------------\n');
   });
 
-  // Process Event Handlers
+  // Graceful shutdown handlers
   process.on('unhandledRejection', (err) => {
     console.error('🔥 Unhandled Rejection:', err);
     server.close(() => process.exit(1));
