@@ -47,10 +47,29 @@ try {
   console.log('📚 MongoDB connection established\n');
 
   // Core Middleware
-  app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true
-  }));
+ // ... (previous imports remain the same)
+
+// Core Middleware - Updated CORS configuration
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'https://agrilink-client-5h39-git-main-felix-atomas-projects.vercel.app'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+// ... (rest of the code remains the same)
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   

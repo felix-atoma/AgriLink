@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import Spinner from '../../../components/shared/Spinner';
 import OrderTracker from '../../../components/buyer/OrderTracker';
 import apiClient from '../../../services/apiClient';
-import { useToast } from '../../../components/ui/Toast';
 import { isValidObjectId } from '../../../utils/validateForm';
 
 const OrderDetails = () => {
@@ -13,7 +13,6 @@ const OrderDetails = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -33,18 +32,25 @@ const OrderDetails = () => {
       } catch (err) {
         console.error('[OrderDetails] Error:', err);
         setError(err.response?.data?.message || err.message);
-        toast({
-          title: t('errors.orderFetchFailed'),
-          description: err.response?.data?.message || err.message,
-          status: 'error',
-        });
+        toast.error(
+          `${t('errors.orderFetchFailed')}: ${err.response?.data?.message || err.message}`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          }
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrder();
-  }, [orderId, t, toast]);
+  }, [orderId, t]);
 
   const formatDate = (dateString) => {
     return new Intl.DateTimeFormat(t('locale'), {
