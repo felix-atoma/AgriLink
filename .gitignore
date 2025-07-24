@@ -20,3 +20,4 @@ pnpm-debug.log*
 # Optional: ignore build artifacts
 dist/
 build/
+.pnpm/
