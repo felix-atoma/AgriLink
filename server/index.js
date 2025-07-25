@@ -21,7 +21,7 @@ dotenv.config({ override: true, debug: false });
 console.log('🔧 Environment variables loaded');
 
 // Verify critical environment variables
-const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'CLIENT_URL'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
@@ -33,7 +33,7 @@ if (missingVars.length > 0) {
 // Configuration summary
 console.log('\n⚙️  Configuration:');
 console.log(`- Environment: ${process.env.NODE_ENV || 'development'}`);
-console.log(`- Client URL: ${process.env.CLIENT_URL || 'Not configured'}`);
+console.log(`- Client URL: ${process.env.CLIENT_URL}`);
 console.log(`- MongoDB: ${process.env.MONGODB_URI ? 'Configured' : 'Missing'}\n`);
 
 // Add debug colors for better visibility
@@ -56,32 +56,59 @@ try {
   await connectDB();
   console.log('📚 MongoDB connection established\n');
 
-  // Core Middleware - Updated CORS configuration
+  // Enhanced CORS Configuration
   const allowedOrigins = [
-    process.env.CLIENT_URL || 'http://localhost:5173',
+    process.env.CLIENT_URL,
+    'http://localhost:5173',
     'https://agrilink-client-5h39-git-main-felix-atomas-projects.vercel.app'
-  ];
+  ].filter(Boolean); // Remove any undefined values
 
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+  console.log(`${colors.info}🌐 Allowed CORS Origins:${colors.reset}`, allowedOrigins);
+
+  const corsOptions = {
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.warn(`${colors.warning}CORS blocked for origin:${colors.reset}`, origin);
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true
-  }));
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin'
+    ],
+    optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  };
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // Apply CORS middleware
+  app.use(cors(corsOptions));
+
+  // Handle preflight requests
+  app.options('*', cors(corsOptions));
+
+  // Other middleware
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   
-  // Security headers
+  // Security headers middleware
   app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || allowedOrigins[0] || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
   });
+
   console.log('🧩 Core middleware mounted');
 
   // HTTP Logging
@@ -177,7 +204,11 @@ try {
     res.json({
       status: 'success',
       loadedRoutes,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      cors: {
+        allowedOrigins,
+        currentOrigin: req.headers.origin
+      }
     });
   });
 
@@ -190,7 +221,11 @@ try {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
-      routesStatus: `${req.protocol}://${req.get('host')}/api/v1/routes/status`
+      routesStatus: `${req.protocol}://${req.get('host')}/api/v1/routes/status`,
+      cors: {
+        allowedOrigins,
+        currentOrigin: req.headers.origin
+      }
     });
   });
 
@@ -206,13 +241,27 @@ try {
         path,
         description: name,
         status: `${req.protocol}://${req.get('host')}${path}/status`
-      }))
+      })),
+      cors: {
+        allowedOrigins,
+        currentOrigin: req.headers.origin
+      }
     });
   });
 
   // Error Handling Middleware
   app.use((err, req, res, next) => {
     console.error('⚠️  Error:', err.message);
+    
+    // Handle CORS errors specifically
+    if (err.message === 'Not allowed by CORS') {
+      return res.status(403).json({
+        error: 'CORS Policy',
+        message: `Origin ${req.headers.origin} is not allowed`,
+        allowedOrigins
+      });
+    }
+    
     res.status(err.status || 500).json({
       error: err.message || 'Internal Server Error',
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
@@ -228,7 +277,11 @@ try {
         '/api/v1/health',
         '/api/v1/routes/status',
         ...routeConfigs.map(([_, path]) => path)
-      ]
+      ],
+      cors: {
+        allowedOrigins,
+        currentOrigin: req.headers.origin
+      }
     });
   });
 
@@ -238,6 +291,7 @@ try {
     console.log('\n----------------------------------------');
     console.log('🚀 Server successfully started');
     console.log(`🔗 http://localhost:${PORT}`);
+    console.log('🌐 Allowed CORS Origins:', allowedOrigins);
     console.log('----------------------------------------\n');
   });
 
