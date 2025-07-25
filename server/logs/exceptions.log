@@ -1,0 +1,2 @@
+2025-07-25 12:30:11 [31merror[39m: ReferenceError: server is not defined
+    at file:///C:/Users/felix/AgriLink/server/index.js:188:4
