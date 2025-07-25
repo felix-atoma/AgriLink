@@ -4,11 +4,14 @@ import messages from '../constants/messages.js';
 export const validateRegister = [
   check('name')
     .notEmpty()
-    .withMessage('Name is required'),
+    .withMessage('Name is required')
+    .isLength({ min: 2 })
+    .withMessage('Name must be at least 2 characters'),
 
   check('email')
     .isEmail()
-    .withMessage(messages.VALIDATION.INVALID_EMAIL),
+    .withMessage(messages.VALIDATION.INVALID_EMAIL)
+    .normalizeEmail(),
 
   check('password')
     .isLength({ min: 6 })
@@ -16,7 +19,7 @@ export const validateRegister = [
 
   check('role')
     .isIn(['farmer', 'buyer'])
-    .withMessage('Invalid role specified'),
+    .withMessage('Role must be either farmer or buyer'),
 
   check('contact')
     .notEmpty()
@@ -26,7 +29,8 @@ export const validateRegister = [
 export const validateLogin = [
   check('email')
     .isEmail()
-    .withMessage(messages.VALIDATION.INVALID_EMAIL),
+    .withMessage(messages.VALIDATION.INVALID_EMAIL)
+    .normalizeEmail(),
 
   check('password')
     .notEmpty()

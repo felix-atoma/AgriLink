@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 import User from '../models/User.js';
 import { errorResponse } from '../utils/apiResponse.js';
 
-// Middleware to protect routes (requires valid token)
+// Authentication middleware
 export const protect = async (req, res, next) => {
   let token;
 
-  // Extract token from Authorization header
+  // Get token from header
   if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
@@ -17,27 +17,30 @@ export const protect = async (req, res, next) => {
   }
 
   try {
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Ensure the ID in the token is a valid ObjectId
+    // Validate user ID
     if (!decoded.id || !mongoose.Types.ObjectId.isValid(decoded.id)) {
       return errorResponse(res, 'Invalid user ID in token', 400);
     }
 
+    // Get user from database
     const user = await User.findById(decoded.id).select('-password');
     if (!user) {
       return errorResponse(res, 'User not found', 401);
     }
 
+    // Attach user to request
     req.user = user;
     next();
   } catch (error) {
-    console.error('[Auth Middleware] Token error:', error.message);
+    console.error('Token verification error:', error.message);
     return errorResponse(res, 'Not authorized, token failed', 401);
   }
 };
 
-// Role-based access control middleware
+// Role authorization middleware
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {

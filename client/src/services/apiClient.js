@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'https://agrilink-1-y19q.onrender.com/api/v1',
+  baseURL: 'https://agrilink-1-zqcq.onrender.com/api/v1',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
