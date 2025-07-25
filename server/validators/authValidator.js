@@ -1,6 +1,9 @@
-import { check } from 'express-validator';
+import { check, validationResult } from 'express-validator';
 import messages from '../constants/messages.js';
 
+/**
+ * Validation middleware for user registration
+ */
 export const validateRegister = [
   check('name')
     .notEmpty().withMessage('Name is required')
@@ -39,22 +42,35 @@ export const validateRegister = [
     .if(check('role').equals('farmer'))
     .isFloat({ min: -180, max: 180 }).withMessage('Invalid longitude value'),
 
+  // Validation handler
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array().map(err => ({
+            param: err.param,
+            message: err.msg,
+            location: err.location
+          }))
+        });
+      }
+      next();
+    } catch (err) {
+      console.error('Validation middleware error:', err);
+      res.status(500).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array().map(err => ({
-          param: err.param,
-          message: err.msg
-        }))
+        message: 'Internal validation error'
       });
     }
-    next();
   }
 ];
 
+/**
+ * Validation middleware for user login
+ */
 export const validateLogin = [
   check('email')
     .isEmail().withMessage(messages.VALIDATION.INVALID_EMAIL)
@@ -63,18 +79,28 @@ export const validateLogin = [
   check('password')
     .notEmpty().withMessage('Password is required'),
     
+  // Validation handler
   (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array().map(err => ({
+            param: err.param,
+            message: err.msg,
+            location: err.location
+          }))
+        });
+      }
+      next();
+    } catch (err) {
+      console.error('Validation middleware error:', err);
+      res.status(500).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array().map(err => ({
-          param: err.param,
-          message: err.msg
-        }))
+        message: 'Internal validation error'
       });
     }
-    next();
   }
 ];
