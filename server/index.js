@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import { resolvePath } from './utils/pathResolver.js';
 
 // Initialize dynamic __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -34,6 +35,15 @@ console.log('\n⚙️  Configuration:');
 console.log(`- Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`- Client URL: ${process.env.CLIENT_URL || 'Not configured'}`);
 console.log(`- MongoDB: ${process.env.MONGODB_URI ? 'Configured' : 'Missing'}\n`);
+
+// Add debug colors for better visibility
+const colors = {
+  reset: '\x1b[0m',
+  success: '\x1b[32m',  // Green
+  error: '\x1b[31m',    // Red
+  info: '\x1b[36m',     // Cyan
+  warning: '\x1b[33m'   // Yellow
+};
 
 try {
   // Initialize Express
@@ -102,8 +112,9 @@ try {
   app.use('/uploads', express.static(uploadsPath));
   console.log(`📁 Serving static files from: ${uploadsPath}`);
 
-  // Route Loading - Improved with dynamic imports
-  console.log('\n🛣️  Loading routes:');
+  // Enhanced Route Loading System
+  console.log(`${colors.info}\n🛣️  Starting route loading process...${colors.reset}`);
+
   const routeConfigs = [
     ['Authentication', '/api/v1/auth', './routes/authRoutes.js'],
     ['Products', '/api/v1/products', './routes/productRoutes.js'],
@@ -113,22 +124,64 @@ try {
 
   for (const [name, pathPrefix, modulePath] of routeConfigs) {
     try {
-      // Resolve full path to the module
-      const fullPath = path.join(__dirname, modulePath);
-      console.log(`- Attempting to load ${name} from: ${fullPath}`);
+      // Resolve and verify path exists
+      const fullPath = resolvePath(modulePath);
+      console.log(`${colors.info}⌛ Loading ${name} from: ${fullPath}${colors.reset}`);
       
-      const module = await import(fullPath);
+      // Dynamic import with timeout
+      const module = await Promise.race([
+        import(fullPath),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error(`Import timeout (5000ms) for ${modulePath}`)), 5000)
+        )
+      ]);
+      
+      // Validate module structure
       if (!module.default) {
-        throw new Error(`Module ${modulePath} has no default export`);
+        throw new Error(`Module ${modulePath} has no default export. Found keys: ${Object.keys(module).join(', ')}`);
       }
       
+      if (typeof module.default !== 'function') {
+        throw new Error(`Default export must be a router function. Got: ${typeof module.default}`);
+      }
+      
+      // Mount the router
       app.use(pathPrefix, module.default);
-      console.log(`✅ ${name} routes mounted at ${pathPrefix}`);
+      console.log(`${colors.success}✅ ${name} routes successfully mounted at ${pathPrefix}${colors.reset}`);
+      
     } catch (err) {
-      console.error(`❌ Failed to load ${name} routes:`, err.message);
-      console.error(err.stack);
+      console.error(`${colors.error}❌ Failed to load ${name} routes:${colors.reset}`, err.message);
+      console.error(`${colors.warning}Stack trace:${colors.reset}`, err.stack);
+      
+      // Add route that shows error status
+      app.use(pathPrefix, (req, res) => {
+        res.status(503).json({
+          error: 'Route unavailable',
+          message: `${name} routes failed to load`,
+          details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+      });
     }
   }
+
+  // Add verification endpoint
+  app.get('/api/v1/routes/status', (req, res) => {
+    const loadedRoutes = routeConfigs.map(([name, path]) => ({
+      name,
+      path,
+      status: app._router.stack.some(layer => layer.regexp.test(path)) 
+        ? 'active' 
+        : 'inactive'
+    }));
+    
+    res.json({
+      status: 'success',
+      loadedRoutes,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  console.log(`${colors.success}🏁 Route loading completed${colors.reset}`);
 
   // Health Check Endpoint
   app.get('/api/v1/health', (req, res) => {
@@ -136,7 +189,8 @@ try {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      routesStatus: `${req.protocol}://${req.get('host')}/api/v1/routes/status`
     });
   });
 
@@ -150,7 +204,8 @@ try {
       healthCheck: `${req.protocol}://${req.get('host')}/api/v1/health`,
       availableRoutes: routeConfigs.map(([name, path]) => ({
         path,
-        description: name
+        description: name,
+        status: `${req.protocol}://${req.get('host')}${path}/status`
       }))
     });
   });
@@ -168,7 +223,12 @@ try {
   app.use((req, res) => {
     res.status(404).json({
       error: 'Endpoint not found',
-      requestedUrl: req.originalUrl
+      requestedUrl: req.originalUrl,
+      availableEndpoints: [
+        '/api/v1/health',
+        '/api/v1/routes/status',
+        ...routeConfigs.map(([_, path]) => path)
+      ]
     });
   });
 
