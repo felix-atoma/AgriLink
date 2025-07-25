@@ -46,30 +46,23 @@ try {
   await connectDB();
   console.log('📚 MongoDB connection established\n');
 
-  // Core Middleware
- // ... (previous imports remain the same)
+  // Core Middleware - Updated CORS configuration
+  const allowedOrigins = [
+    process.env.CLIENT_URL || 'http://localhost:5173',
+    'https://agrilink-client-5h39-git-main-felix-atomas-projects.vercel.app'
+  ];
 
-// Core Middleware - Updated CORS configuration
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'https://agrilink-client-5h39-git-main-felix-atomas-projects.vercel.app'
-];
+  app.use(cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true
+  }));
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
-
-// ... (rest of the code remains the same)
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   
@@ -85,38 +78,31 @@ app.use(cors({
   if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
     console.log('📝 Development logging enabled (Morgan)');
-  } else {
-    const logger = (await import('./utils/logger.js')).default;
-    app.use(morgan('combined', {
-      stream: { write: (message) => logger.info(message.trim()) }
-    }));
-    console.log('📝 Production logging enabled');
   }
 
-  // Internationalization
-  try {
-    const { detectLanguage } = await import('./middleware/language.js');
-    app.use(detectLanguage);
-    console.log('🌐 Language middleware mounted');
-  } catch (i18nError) {
-    console.warn('⚠️  Language middleware failed, using fallback');
-    app.use((req, res, next) => {
-      req.language = 'en';
-      next();
-    });
-  }
+  // Create required directories
+  const requiredDirs = [
+    path.join(__dirname, 'uploads'),
+    path.join(__dirname, 'locales')
+  ];
+
+  await Promise.all(requiredDirs.map(async dir => {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      console.log(`📁 Created directory: ${dir}`);
+    } catch (err) {
+      if (err.code !== 'EEXIST') {
+        console.warn(`⚠️  Could not create directory ${dir}:`, err.message);
+      }
+    }
+  }));
 
   // Static Files
   const uploadsPath = path.join(__dirname, 'uploads');
-  try {
-    await fs.access(uploadsPath);
-    app.use('/uploads', express.static(uploadsPath));
-    console.log(`📁 Serving static files from: ${uploadsPath}`);
-  } catch {
-    console.warn(`⚠️  Uploads directory not found: ${uploadsPath}`);
-  }
+  app.use('/uploads', express.static(uploadsPath));
+  console.log(`📁 Serving static files from: ${uploadsPath}`);
 
-  // Route Loading
+  // Route Loading - Improved with dynamic imports
   console.log('\n🛣️  Loading routes:');
   const routeConfigs = [
     ['Authentication', '/api/v1/auth', './routes/authRoutes.js'],
@@ -127,13 +113,32 @@ app.use(cors({
 
   for (const [name, pathPrefix, modulePath] of routeConfigs) {
     try {
-      const router = (await import(modulePath)).default;
-      app.use(pathPrefix, router);
-      console.log(`- ${name}: ${pathPrefix}`);
+      // Resolve full path to the module
+      const fullPath = path.join(__dirname, modulePath);
+      console.log(`- Attempting to load ${name} from: ${fullPath}`);
+      
+      const module = await import(fullPath);
+      if (!module.default) {
+        throw new Error(`Module ${modulePath} has no default export`);
+      }
+      
+      app.use(pathPrefix, module.default);
+      console.log(`✅ ${name} routes mounted at ${pathPrefix}`);
     } catch (err) {
       console.error(`❌ Failed to load ${name} routes:`, err.message);
+      console.error(err.stack);
     }
   }
+
+  // Health Check Endpoint
+  app.get('/api/v1/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime()
+    });
+  });
 
   // Root endpoint
   app.get('/', (req, res) => {
@@ -150,72 +155,30 @@ app.use(cors({
     });
   });
 
-  // Documentation endpoint
-  app.get('/docs', (req, res) => {
-    res.json({
-      apiVersion: '1.0.0',
-      endpoints: [
-        {
-          path: '/api/v1/auth',
-          methods: ['POST', 'GET'],
-          description: 'User authentication'
-        },
-        {
-          path: '/api/v1/products',
-          methods: ['GET', 'POST', 'PUT', 'DELETE'],
-          description: 'Product management'
-        }
-        // Add more endpoint documentation as needed
-      ]
+  // Error Handling Middleware
+  app.use((err, req, res, next) => {
+    console.error('⚠️  Error:', err.message);
+    res.status(err.status || 500).json({
+      error: err.message || 'Internal Server Error',
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   });
 
-  // Health Check Endpoint
-  app.get('/api/v1/health', (req, res) => {
-    res.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      language: req.language || 'en',
-      uptime: process.uptime()
+  // 404 Handler
+  app.use((req, res) => {
+    res.status(404).json({
+      error: 'Endpoint not found',
+      requestedUrl: req.originalUrl
     });
   });
-
-  // Error Handling
-  try {
-    const { notFound, errorHandler } = await import('./middleware/errorHandler.js');
-    app.use(notFound);
-    app.use(errorHandler);
-    console.log('\n⚠️  Error handlers mounted');
-  } catch (err) {
-    console.error('❌ Error handler loading failed:', err.message);
-    app.use((err, req, res, next) => {
-      res.status(500).json({ 
-        error: 'Internal Server Error',
-        message: err.message,
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-      });
-    });
-  }
 
   // Server Startup
   const PORT = process.env.PORT || 5000;
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log('\n----------------------------------------');
     console.log('🚀 Server successfully started');
     console.log(`🔗 http://localhost:${PORT}`);
     console.log('----------------------------------------\n');
-  });
-
-  // Graceful shutdown handlers
-  process.on('unhandledRejection', (err) => {
-    console.error('🔥 Unhandled Rejection:', err);
-    server.close(() => process.exit(1));
-  });
-
-  process.on('uncaughtException', (err) => {
-    console.error('💥 Uncaught Exception:', err);
-    process.exit(1);
   });
 
 } catch (startupError) {
