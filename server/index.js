@@ -57,21 +57,20 @@ try {
   console.log('📚 MongoDB connection established\n');
 
   // Core Middleware - Updated CORS configuration
-  const allowedOrigins = [
-    process.env.CLIENT_URL || 'http://localhost:5173',
-    'https://agrilink-client-5h39-git-main-felix-atomas-projects.vercel.app'
-  ];
+  
+const allowedOrigins = process.env.CLIENT_URL.split(',').map(origin => origin.trim());
 
-  app.use(cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true
-  }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
