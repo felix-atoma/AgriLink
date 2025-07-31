@@ -18,14 +18,18 @@ const CartItem = ({ item, onQuantityChange, onRemove }) => {
         <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
           {item.product.images?.[0] ? (
             <img
-              src={item.product.images[0]}
+              src={
+                typeof item.product.images[0] === 'object' && item.product.images[0].url
+                  ? item.product.images[0].url
+                  : item.product.images[0]
+              }
               alt={item.product.name}
               className="w-full h-full object-cover"
               loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
-              {t('product.noImage') || 'No Image'}
+              {t('products:product.noImage') || 'No Image'}
             </div>
           )}
         </div>
