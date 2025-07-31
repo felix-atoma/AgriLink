@@ -32,7 +32,7 @@ const FarmerProductList = ({ products, onEdit, onDelete }) => {
                   <div className="flex-shrink-0 h-10 w-10">
                     <img
                       className="h-10 w-10 rounded-full"
-                      src={product.image || '/placeholder-product.jpg'}
+                      src={product.image || '/images/placeholder-product.svg'}
                       alt={product.name}
                     />
                   </div>

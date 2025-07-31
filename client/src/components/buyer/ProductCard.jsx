@@ -18,17 +18,17 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = () => {
     try {
       if (!product?._id) {
-        error(t('product.invalid') || 'Invalid product');
+        error(t('products:product.invalid') || 'Invalid product');
         return;
       }
 
       if (quantity < 1 || quantity > 100) {
-        error(t('cart.invalid_quantity') || 'Quantity must be between 1-100');
+        error(t('products:cart.invalid_quantity') || 'Quantity must be between 1-100');
         return;
       }
 
       if (product.variants?.length > 0 && !selectedVariant) {
-        error(t('product.select_variant') || 'Please select a variant');
+        error(t('products:product.select_variant') || 'Please select a variant');
         return;
       }
 
@@ -38,25 +38,45 @@ const ProductCard = ({ product }) => {
         variantName: selectedVariant,
       }, quantity);
 
-      success(t('cart.added') || 'Product added to cart');
+      success(t('products:cart.added') || 'Product added to cart');
     } catch (err) {
-      error(t('cart.error') || 'Failed to add to cart');
+      error(t('products:cart.error') || 'Failed to add to cart');
     }
   };
 
   // Generate proper Cloudinary URL with transformations
   const getImageUrl = () => {
-    if (imageError) return '/images/placeholder-product.jpg';
+    if (imageError) return '/images/placeholder-product.svg';
     
-    if (!product.images?.[0]) return '/images/placeholder-product.jpg';
+    if (!product.images?.[0]) return '/images/placeholder-product.svg';
 
-    // If already a full URL (Cloudinary or otherwise)
-    if (product.images[0].startsWith('http')) {
-      return product.images[0];
+    // Handle different image data structures
+    let imageUrl = '';
+    
+    // If image is an object with url property
+    if (typeof product.images[0] === 'object' && product.images[0].url) {
+      imageUrl = product.images[0].url;
+    } 
+    // If image is a string
+    else if (typeof product.images[0] === 'string') {
+      imageUrl = product.images[0];
+    }
+    else {
+      return '/images/placeholder-product.svg';
     }
 
-    // If stored as Cloudinary public ID
-    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/w_400,h_300,c_fill,q_auto/${product.images[0]}`;
+    // If already a full URL (Cloudinary or otherwise)
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+
+    // If stored as Cloudinary public ID, construct URL
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+    if (cloudName) {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_300,c_fill,q_auto/${imageUrl}`;
+    }
+
+
   };
 
   return (
@@ -91,7 +111,7 @@ const ProductCard = ({ product }) => {
             onChange={(e) => setSelectedVariant(e.target.value)}
             required
           >
-            <option value="">{t('product.select_variant')}</option>
+            <option value="">{t('products:product.select_variant')}</option>
             {product.variants.map((variant) => (
               <option key={variant} value={variant}>
                 {variant}
@@ -116,7 +136,7 @@ const ProductCard = ({ product }) => {
           <button
             onClick={handleAddToCart}
             className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full transition-colors"
-            aria-label={t('cart.add')}
+            aria-label={t('products:cart.add')}
             disabled={product.stock <= 0}
           >
             <ShoppingCartIcon className="w-5 h-5" />
@@ -124,7 +144,7 @@ const ProductCard = ({ product }) => {
         </div>
         {product.stock <= 0 && (
           <p className="text-red-500 text-xs mt-1">
-            {t('product.out_of_stock')}
+            {t('products:product.out_of_stock')}
           </p>
         )}
       </div>
