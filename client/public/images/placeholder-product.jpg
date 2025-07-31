@@ -1,0 +1,7 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#f3f4f6"/>
+  <rect x="50" y="50" width="300" height="200" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2"/>
+  <circle cx="120" cy="120" r="20" fill="#9ca3af"/>
+  <polygon points="160,180 200,140 240,160 280,120 280,200 160,200" fill="#9ca3af"/>
+  <text x="200" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#6b7280">Product Image</text>
+</svg>

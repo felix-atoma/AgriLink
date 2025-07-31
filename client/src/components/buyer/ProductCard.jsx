@@ -56,7 +56,7 @@ const ProductCard = ({ product }) => {
     }
 
     // If stored as Cloudinary public ID
-    return `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload/w_400,h_300,c_fill,q_auto/${product.images[0]}`;
+    return `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload/w_400,h_300,c_fill,q_auto/${product.images[0]}`;
   };
 
   return (
