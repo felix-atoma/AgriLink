@@ -1,0 +1,11 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="none"/>
+  <!-- Box outline -->
+  <rect x="40" y="60" width="120" height="80" fill="none" stroke="#9ca3af" stroke-width="3" stroke-dasharray="8,4"/>
+  <!-- Box top -->
+  <path d="M40 60 L100 30 L220 30 L160 60 Z" fill="none" stroke="#9ca3af" stroke-width="3" stroke-dasharray="8,4"/>
+  <!-- Box side -->
+  <path d="M160 60 L220 30 L220 110 L160 140 Z" fill="none" stroke="#9ca3af" stroke-width="3" stroke-dasharray="8,4"/>
+  <!-- Empty text -->
+  <text x="100" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6b7280">No products found</text>
+</svg>

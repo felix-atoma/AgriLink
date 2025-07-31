@@ -76,8 +76,7 @@ const ProductCard = ({ product }) => {
       return `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_300,c_fill,q_auto/${imageUrl}`;
     }
 
-    // Fallback to placeholder
-    return '/images/placeholder-product.svg';
+
   };
 
   return (
