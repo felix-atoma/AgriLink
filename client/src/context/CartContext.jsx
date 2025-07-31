@@ -33,6 +33,13 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
+    // Validate quantity
+    const validQuantity = Number(quantity);
+    if (isNaN(validQuantity) || validQuantity <= 0) {
+      toast.error("Invalid quantity. Must be a positive number.");
+      return;
+    }
+
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex(
         (item) => item.product._id === product._id && item.variantId === variantId
@@ -42,7 +49,7 @@ export const CartProvider = ({ children }) => {
         const updatedCart = [...prevCart];
         updatedCart[existingIndex] = {
           ...updatedCart[existingIndex],
-          quantity: updatedCart[existingIndex].quantity + quantity,
+          quantity: updatedCart[existingIndex].quantity + validQuantity,
         };
         toast.success("Item quantity updated");
         return updatedCart;
@@ -53,7 +60,7 @@ export const CartProvider = ({ children }) => {
         ...prevCart,
         {
           product,
-          quantity,
+          quantity: validQuantity,
           variantId,
           addedAt: new Date().toISOString(),
         },
