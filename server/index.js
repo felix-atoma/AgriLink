@@ -58,7 +58,9 @@ try {
 
   // Core Middleware - Updated CORS configuration
   
-const allowedOrigins = process.env.CLIENT_URL.split(',').map(origin => origin.trim());
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000', 'http://localhost:5173']; // Default dev origins
 
 app.use(cors({
   origin: (origin, callback) => {

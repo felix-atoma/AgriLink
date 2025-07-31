@@ -47,5 +47,17 @@
     "invalidPrice": "Price must be greater than 0",
     "invalidQuantity": "Quantity cannot be negative",
     "invalidCoordinates": "Please enter valid coordinates"
+  },
+  "product": {
+    "invalid": "Invalid product",
+    "select_variant": "Select variant",
+    "out_of_stock": "Out of stock",
+    "noImage": "No Image"
+  },
+  "cart": {
+    "add": "Add to cart",
+    "added": "Product added to cart",
+    "invalid_quantity": "Quantity must be between 1-100",
+    "error": "Failed to add to cart"
   }
 }

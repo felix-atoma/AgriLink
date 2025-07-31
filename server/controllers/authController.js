@@ -59,9 +59,13 @@ export const register = async (req, res) => {
       console.error('Email send failed:', emailError.message);
     }
 
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
     return successResponse(res, {
       message: 'User registered successfully',
-      user,
+      user: userResponse,
       token
     }, 201);
 
@@ -86,7 +90,12 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(user);
-    return successResponse(res, { user, token });
+    
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    
+    return successResponse(res, { user: userResponse, token });
 
   } catch (error) {
     console.error('LOGIN ERROR:', error);
